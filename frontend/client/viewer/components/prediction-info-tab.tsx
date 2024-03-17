@@ -53,7 +53,7 @@ export default function PredictionInfoTab(props: { predictionInfo: PredictionInf
         },
         {
             name: "P2Rank version",
-            value: props.predictionData.metadata.p2rank_version || "unknown, possibly 2.4"
+            value: props.predictionData.metadata.p2rank_version || "< 2.4"
         },
         {
             name: "",

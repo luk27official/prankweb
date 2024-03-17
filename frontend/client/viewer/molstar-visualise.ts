@@ -82,23 +82,22 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
         });
     }
 
-    //adds water molecules
-    const water = await plugin.builders.structure.tryCreateComponentStatic(structure, 'water');
-    if (water) {
-        await plugin.builders.structure.representation.addRepresentation(water, {
-            type: 'ball-and-stick',
-        });
-    }
-
-    //adds ligands
-    const ligands = await plugin.builders.structure.tryCreateComponentStatic(structure, 'ligand');
-    if (ligands) {
-        await plugin.builders.structure.representation.addRepresentation(ligands, {
-            type: 'ball-and-stick',
-        });
-    }
+    await createLigandRepresentations(plugin, structure);
 
     return [model, structure];
+}
+
+async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector) {
+    const shownGroups = ["water", "ion", "ligand", "nucleic", "lipid", "branched", "non-standard", "coarse"] as const;
+
+    for (const group of shownGroups) {
+        const component = await plugin.builders.structure.tryCreateComponentStatic(structure, group);
+        if (component) {
+            plugin.builders.structure.representation.addRepresentation(component, {
+                type: 'ball-and-stick',
+            });
+        }
+    }
 }
 
 /** Method returning log_x(y) */
