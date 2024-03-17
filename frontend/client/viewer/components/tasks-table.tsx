@@ -11,9 +11,9 @@ import { visuallyHidden } from '@mui/utils';
 import { useInterval } from "./tools";
 
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { PocketData } from "../../custom-types";
+import { PocketData, ServerTaskTypeVisualizationDescriptors } from "../../custom-types";
 import { ClientTaskLocalStorageData, ServerTaskLocalStorageData, ServerTaskTypeDescriptors, ClientTaskTypeDescriptors, ClientTaskType, ServerTaskType } from "../../custom-types";
-import { downloadDockingResult, pollForDockingTask } from "../../tasks/server-docking-task";
+import { dockingHash, downloadDockingResult, pollForDockingTask } from "../../tasks/server-docking-task";
 import { Order, getComparator, isInstanceOfClientTaskLocalStorageData, isInstanceOfServerTaskLocalStorageData } from "./tools";
 import { PredictionInfo } from "../../prankweb-api";
 
@@ -187,6 +187,11 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         return date.slice(0, -5);
     };
 
+    const redirectToVisualization = async (task: ServerTaskLocalStorageData) => {
+        const hash = await dockingHash(task.pocket.toString(), task.params[0], task.params[1]);
+        window.location.href = `./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}`;
+    };
+
     return (
         <Table size="small">
             <EnhancedTableHead
@@ -227,6 +232,10 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                 <TableCell>
                                     <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={removeServerTaskFromLocalStorage(task)}>
                                         <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
+                                    </button>
+                                    &nbsp;
+                                    <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
+                                        <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
                                     </button>
                                 </TableCell>
                             </TableRow>

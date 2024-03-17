@@ -262,6 +262,10 @@ export const ServerTaskTypeDescriptors = [ //descriptors for the ServerTaskType
     "Molecular docking"
 ];
 
+export const ServerTaskTypeVisualizationDescriptors = [ //descriptors for the ServerTaskType visualization
+    "docking"
+];
+
 export interface ServerTask {
     name: string;
     params: string[];
