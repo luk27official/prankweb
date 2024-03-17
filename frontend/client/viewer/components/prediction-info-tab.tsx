@@ -1,6 +1,6 @@
 import React from "react";
 import { PredictionInfo } from "../../prankweb-api";
-import { Button, Paper, Table, TableRow, TableCell } from "@mui/material";
+import { Button, Paper, Table, TableRow, TableCell, TableBody } from "@mui/material";
 import { getApiDownloadUrl } from "../../prankweb-api";
 import { PredictionData } from "../../custom-types";
 
@@ -70,12 +70,14 @@ export default function PredictionInfoTab(props: { predictionInfo: PredictionInf
     return (
         <Paper>
             <Table>
-                {shownProperties.map((p, i) =>
-                    <TableRow key={i}>
-                        <TableCell>{p.name}</TableCell>
-                        <TableCell>{p.value}</TableCell>
-                    </TableRow>
-                )}
+                <TableBody>
+                    {shownProperties.map((p, i) =>
+                        <TableRow key={i}>
+                            <TableCell>{p.name}</TableCell>
+                            <TableCell>{p.value}</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
             </Table>
         </Paper>
     );
