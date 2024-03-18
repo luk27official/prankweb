@@ -189,7 +189,7 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
 
     const redirectToVisualization = async (task: ServerTaskLocalStorageData) => {
         const hash = await dockingHash(task.pocket.toString(), task.params[0], task.params[1]);
-        window.location.href = `./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}`;
+        window.location.href = `./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}&structureName=${props.predictionInfo.metadata.structureName}`;
     };
 
     return (

@@ -9,8 +9,9 @@ async function main() {
     const taskHash = queryParameters.get("hash");
     const id = queryParameters.get("id");
     const database = queryParameters.get("database");
+    const structureName = queryParameters.get("structureName");
 
-    if (type === null || taskHash === null || id === null || database === null) {
+    if (type === null || taskHash === null || id === null || database === null || structureName === null) {
         render({ type: "unknown", data: "Incomplete data." });
         return;
     }
@@ -22,14 +23,14 @@ async function main() {
         return;
     }
 
-    const receivedData = await getData(type, id, database, taskHash);
+    const receivedData = await getData(type, id, database, taskHash, structureName);
     render({ type: type, data: receivedData });
 }
 
-async function getData(type: string, id: string, database: string, hash: string) {
+async function getData(type: string, id: string, database: string, hash: string, structureName: string) {
     switch (type) {
         case "docking":
-            return await getDockingTaskContent(type, id, database, hash);
+            return await getDockingTaskContent(type, id, database, hash, structureName);
         default:
             return "Unknown type";
     }
