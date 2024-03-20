@@ -234,9 +234,11 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                         <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
                                     </button>
                                     &nbsp;
-                                    <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
-                                        <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
-                                    </button>
+                                    {task.status === "succesful" &&
+                                        <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
+                                            <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
+                                        </button>
+                                    }
                                 </TableCell>
                             </TableRow>
                         );
