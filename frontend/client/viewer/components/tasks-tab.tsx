@@ -27,6 +27,7 @@ type TaskTypeMenuItem = {
     name: string,
     compute: (params: string[], customName: string, pocketIndex: number) => void;
     parameterDescriptions: string[];
+    parameterDefaults?: string[];
 };
 
 export default function TasksTab(props: { pockets: PocketData[], predictionInfo: PredictionInfo, plugin: PluginUIContext, initialPocket: number; }) {
@@ -78,6 +79,13 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                     setInvalidInput(true);
                     return;
                 }
+
+                // 1-64 is the allowed range
+                if (Number(exhaustiveness) < 1 || Number(exhaustiveness) > 64) {
+                    setInvalidInput(true);
+                    return;
+                }
+
                 setInvalidInput(false);
                 const smiles = params[0].replaceAll(" ", "");
 
@@ -99,8 +107,9 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             },
             parameterDescriptions: [
                 "Enter the molecule in SMILES format (e.g. c1ccccc1)",
-                "Enter the exhaustiveness for Autodock Vina (recommended: 32)"
-            ]
+                "Enter the exhaustiveness for Autodock Vina (recommended: 32, allowed range: 1-64)"
+            ],
+            parameterDefaults: ["", "32"]
         }
     ];
 
@@ -114,7 +123,8 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
     const handleTaskTypeChange = (event: SelectChangeEvent) => {
         const newTask = tasks.find(task => task.id == Number(event.target.value))!;
         setTask(newTask);
-        setParameters(Array(newTask.parameterDescriptions.length).fill(""));
+        if (newTask.parameterDefaults) setParameters(newTask.parameterDefaults);
+        else setParameters(Array(newTask.parameterDescriptions.length).fill(""));
     };
 
     const handlePocketRankChange = (event: SelectChangeEvent) => {

@@ -102,7 +102,7 @@ paths:
           schema:
             $ref: '#/components/schemas/TaskId'
       requestBody:
-        description: The request needs to contain the hash and the pocket number.
+        description: The request needs to contain the hash of the docking task.
         required: true
         content:
           application/json:
