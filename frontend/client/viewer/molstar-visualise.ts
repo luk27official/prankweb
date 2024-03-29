@@ -87,7 +87,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
     return [model, structure];
 }
 
-async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector) {
+export async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector) {
     const shownGroups = ["water", "ion", "ligand", "nucleic", "lipid", "branched", "non-standard", "coarse"] as const;
 
     for (const group of shownGroups) {

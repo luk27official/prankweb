@@ -5,7 +5,7 @@ import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { loadStructureIntoMolstar } from "../viewer/molstar-visualise";
+import { createLigandRepresentations, loadStructureIntoMolstar } from "../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../prankweb-api";
 import { PluginCommands } from "molstar/lib/mol-plugin/commands";
@@ -78,16 +78,9 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
     const model = await plugin.builders.structure.createModel(trajectory);
     const structure = await plugin.builders.structure.createStructure(model, { name: 'model', params: {} });
 
-    let repr;
-    // TODO: Think about more representations.
-    const ligand = await plugin.builders.structure.tryCreateComponentStatic(structure, "ligand");
-    if (ligand) {
-        repr = await plugin.builders.structure.representation.addRepresentation(ligand, {
-            type: 'ball-and-stick',
-        });
-    }
+    await createLigandRepresentations(plugin, structure);
 
-    return [model, structure, repr];
+    return [model, structure];
 }
 
 async function createMolstarViewer() {
