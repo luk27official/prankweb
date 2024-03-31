@@ -10,20 +10,14 @@ import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../prankweb-api";
 import { PluginCommands } from "molstar/lib/mol-plugin/commands";
 import { UpdateTrajectory } from "molstar/lib/mol-plugin-state/actions/structure";
-
-export interface DockingTaskProps {
-    content: string;
-    database: string;
-    id: string;
-    hash: string;
-    structureName: string;
-}
+import { Model, Branch, Hetatm, DockingTaskProps } from "./dockingTaskTypes";
 
 let dockedMolecule: any; // to be able to access the docked molecule from here and avoid multiple fetches
 
 export function DockingType(dp: DockingTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
     const [model, setModel] = React.useState<number>(1);
+    const [pdbqtModels, setPdbqtModels] = React.useState<Model[]>([]);
 
     // this is a hook that runs when the component is mounted
     useEffect(() => {
@@ -38,6 +32,10 @@ export function DockingType(dp: DockingTaskProps) {
             const ligandData = await loadLigandIntoMolstar(plugin, dockedMolecule);
         };
         loadPlugin();
+
+        // Parse the PDBQT content and store the models.
+        const parsedModels = parsePdbqt(dp.content);
+        setPdbqtModels(parsedModels);
     }, []);
 
     useEffect(() => {
@@ -47,9 +45,14 @@ export function DockingType(dp: DockingTaskProps) {
                 return;
             }
 
-            PluginCommands.State.ApplyAction(plugin, {
+            await PluginCommands.State.ApplyAction(plugin, {
                 state: plugin.state.data,
-                action: UpdateTrajectory.create({ action: 'advance', by: 1 })
+                action: UpdateTrajectory.create({ action: 'reset' })
+            });
+
+            await PluginCommands.State.ApplyAction(plugin, {
+                state: plugin.state.data,
+                action: UpdateTrajectory.create({ action: 'advance', by: model - 1 })
             });
         };
 
@@ -62,10 +65,86 @@ export function DockingType(dp: DockingTaskProps) {
             <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "50vh" }}></div>
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
-            <div><button onClick={() => setModel(model + 1)}>Change model</button></div>
+            <table>
+                <tbody>
+                    {pdbqtModels.map((model) => {
+                        return <tr key={model.number + model.vinaResult.join(", ")}>
+                            <td style={{ padding: "10px" }}>{`Model ${model.number}`}</td>
+                            {model.vinaResult.map((result, index) => {
+                                return <td style={{ padding: "10px" }} key={index}>{result}</td>;
+                            })}
+                            <td style={{ padding: "10px" }}><a href="#" onClick={() => setModel(model.number)}>click</a></td>
+                        </tr>;
+                    })}
+                </tbody>
+            </table>
             <div><pre>{dp.content}</pre></div>
         </div>
     </div>;
+}
+
+function parsePdbqt(pdbqtContent: string): Model[] {
+    const models: Model[] = [];
+    let currentModel: Model | null = null;
+
+    const lines = pdbqtContent.split('\n');
+    for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        const keyword = parts[0];
+
+        switch (keyword) {
+            case 'MODEL':
+                if (currentModel) {
+                    models.push(currentModel);
+                }
+                const modelNumber = parseInt(parts[1]);
+                currentModel = {
+                    number: modelNumber,
+                    vinaResult: [],
+                    root: [],
+                    branches: [],
+                    torsdof: 0,
+                };
+                break;
+            case 'REMARK':
+                if (parts[1] === 'VINA') {
+                    currentModel!.vinaResult = parts.slice(3).map(parseFloat);
+                }
+                break;
+            case 'ROOT':
+                break;
+            case 'HETATM':
+                const hetatm: Hetatm = {
+                    id: parseInt(parts[1]),
+                    element: parts[2],
+                    x: parseFloat(parts[5]),
+                    y: parseFloat(parts[6]),
+                    z: parseFloat(parts[7]),
+                };
+                currentModel!.root.push(hetatm);
+                break;
+            case 'BRANCH':
+                const branch: Branch = {
+                    start: parseInt(parts[1]),
+                    end: parseInt(parts[2]),
+                };
+                currentModel!.branches.push(branch);
+                break;
+            case 'TORSDOF':
+                currentModel!.torsdof = parseInt(parts[1]);
+                break;
+            case 'ENDMDL':
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (currentModel) {
+        models.push(currentModel);
+    }
+
+    return models;
 }
 
 async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, dockedMolecule: any) {
