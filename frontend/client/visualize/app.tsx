@@ -2,7 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 import "./app.css";
-import { DockingTaskProps, DockingType } from "./dockingTask";
+import { DockingTask } from "./dockingTask/main";
+import { DockingTaskProps } from "./dockingTask/types";
 
 type Visualization<T> = {
     type: string;
@@ -18,7 +19,7 @@ export function render<T>(visualization: Visualization<T>) {
 function MainVis<T>({ type, data }: Visualization<T>) {
     switch (type) {
         case "docking":
-            return <DockingType {...(data as DockingTaskProps)} />;
+            return <DockingTask {...(data as DockingTaskProps)} />;
         default:
             return (
                 <div>

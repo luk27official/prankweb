@@ -25,4 +25,5 @@ export type Model = {
     root: Hetatm[];
     branches: Branch[];
     torsdof: number;
+    originalContent: string;
 };

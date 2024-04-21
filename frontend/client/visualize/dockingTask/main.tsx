@@ -1,22 +1,23 @@
 import React, { useEffect } from "react";
 
-import "./app.css";
+import "../app.css";
 import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { createLigandRepresentations, loadStructureIntoMolstar } from "../viewer/molstar-visualise";
+import { createLigandRepresentations, loadStructureIntoMolstar, updatePolymerView } from "../../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { getApiEndpoint } from "../prankweb-api";
-import { PluginCommands } from "molstar/lib/mol-plugin/commands";
-import { UpdateTrajectory } from "molstar/lib/mol-plugin-state/actions/structure";
-import { Model, Branch, Hetatm, DockingTaskProps } from "./dockingTaskTypes";
+import { getApiEndpoint } from "../../prankweb-api";
+import { Model, Branch, Hetatm, DockingTaskProps } from "./types";
+
+import { DockingTaskVisualizationBox } from "./visualization-box";
+import { DockingTaskRightPanel } from "./right-panel";
+
 
 let dockedMolecule: any; // to be able to access the docked molecule from here and avoid multiple fetches
 
-export function DockingType(dp: DockingTaskProps) {
+export function DockingTask(dp: DockingTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
-    const [model, setModel] = React.useState<number>(1);
     const [pdbqtModels, setPdbqtModels] = React.useState<Model[]>([]);
 
     // this is a hook that runs when the component is mounted
@@ -38,47 +39,12 @@ export function DockingType(dp: DockingTaskProps) {
         setPdbqtModels(parsedModels);
     }, []);
 
-    useEffect(() => {
-        // TODO: fix the "model" counter - not needed now, but the number should correspond
-        const updateModel = async () => {
-            if (plugin === undefined) {
-                return;
-            }
-
-            await PluginCommands.State.ApplyAction(plugin, {
-                state: plugin.state.data,
-                action: UpdateTrajectory.create({ action: 'reset' })
-            });
-
-            await PluginCommands.State.ApplyAction(plugin, {
-                state: plugin.state.data,
-                action: UpdateTrajectory.create({ action: 'advance', by: model - 1 })
-            });
-        };
-
-        updateModel();
-    }, [model]);
-
     return <div style={{ display: "flex" }}>
         <div style={{ width: "50%", margin: "5px" }}>
-            <h3>Docking Task</h3>
-            <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "50vh" }}></div>
+            <DockingTaskVisualizationBox plugin={plugin!} />
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
-            <table>
-                <tbody>
-                    {pdbqtModels.map((model) => {
-                        return <tr key={model.number + model.vinaResult.join(", ")}>
-                            <td style={{ padding: "10px" }}>{`Model ${model.number}`}</td>
-                            {model.vinaResult.map((result, index) => {
-                                return <td style={{ padding: "10px" }} key={index}>{result}</td>;
-                            })}
-                            <td style={{ padding: "10px" }}><a href="#" onClick={() => setModel(model.number)}>click</a></td>
-                        </tr>;
-                    })}
-                </tbody>
-            </table>
-            <div><pre>{dp.content}</pre></div>
+            <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} />
         </div>
     </div>;
 }
@@ -92,6 +58,10 @@ function parsePdbqt(pdbqtContent: string): Model[] {
         const parts = line.trim().split(/\s+/);
         const keyword = parts[0];
 
+        if (currentModel && keyword !== 'MODEL') {
+            currentModel.originalContent += line + '\n';
+        }
+
         switch (keyword) {
             case 'MODEL':
                 if (currentModel) {
@@ -104,6 +74,7 @@ function parsePdbqt(pdbqtContent: string): Model[] {
                     root: [],
                     branches: [],
                     torsdof: 0,
+                    originalContent: line + '\n',
                 };
                 break;
             case 'REMARK':
