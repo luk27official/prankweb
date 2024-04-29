@@ -165,16 +165,8 @@ async function createMolstarViewer() {
 }
 
 export async function getDockingTaskContent(type: string, id: string, database: string, hash: string, structureName: string): Promise<DockingTaskProps> {
-    const response = await fetch(`./api/v2/docking/${database}/${id}/public/out_vina.pdbqt`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'text/plain',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "hash": hash
-        })
-    }).then(res => res.text()).catch(err => console.log(err));
+    const apiEndpoint = getApiEndpoint(database, id, "docking");
+    const response = await fetch(`${apiEndpoint}/${hash}/public/out_vina.pdbqt`).then(res => res.text()).catch(err => console.log(err));
 
     if (response === undefined) {
         return { content: "Error", hash: hash, id: id, database: database, structureName: structureName };

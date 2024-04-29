@@ -1,4 +1,4 @@
-import { PredictionInfo } from "../prankweb-api";
+import { PredictionInfo, getApiEndpoint } from "../prankweb-api";
 import { PocketData, Point3D, ServerTaskInfo, ServerTaskLocalStorageData } from "../custom-types";
 
 import { getPocketAtomCoordinates } from "../viewer/molstar-visualise";
@@ -73,7 +73,9 @@ export async function computeDockingTaskOnBackend(prediction: PredictionInfo, po
 
     const hash = await dockingHash(pocket.rank, smiles, exhaustiveness);
 
-    await fetch(`./api/v2/docking/${prediction.database}/${prediction.id}/post`, {
+    const apiEndpoint = getApiEndpoint(prediction.database, prediction.id, "docking");
+
+    await fetch(`${apiEndpoint}/post`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -143,7 +145,8 @@ export async function downloadDockingResult(smiles: string, fileURL: string, poc
  * @returns null if no task has finished, otherwise the finished task
  */
 export async function pollForDockingTask(predictionInfo: PredictionInfo) {
-    let taskStatusJSON = await fetch(`./api/v2/docking/${predictionInfo.database}/${predictionInfo.id}/tasks`, { cache: "no-store" })
+    const apiEndpoint = getApiEndpoint(predictionInfo.database, predictionInfo.id, "docking");
+    let taskStatusJSON = await fetch(`${apiEndpoint}/tasks`, { cache: "no-store" })
         .then(res => res.json())
         .catch(err => {
             return;
@@ -170,7 +173,7 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
                     //download the computed data
                     if (individualTask.status === "successful") {
                         const hash = await dockingHash(task.pocket.toString(), individualTask.initialData.smiles, individualTask.initialData.exhaustiveness);
-                        const data = await fetch(`./api/v2/docking/${predictionInfo.database}/${predictionInfo.id}/${hash}/public/result.json`)
+                        const data = await fetch(`${apiEndpoint}/${hash}/public/result.json`)
                             .then(res => res.json()).catch(err => console.log(err));
                         tasks[i].responseData = data;
                     }
