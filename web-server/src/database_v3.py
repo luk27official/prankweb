@@ -303,14 +303,21 @@ def _configuration_to_prediction(
         chain.upper()
         for chain in user_configuration.get("chains", [])
     })
-    conservation = user_configuration.get("compute-conservation", False)
+
+    allowed_models = ["default", "alphafold", "conservation_hmm", "alphafold_conservation_hmm"]
+    model = user_configuration.get("prediction-model", "default")
+    if model not in allowed_models:
+        model = "default"
+
+    conservation = "conservation" in model
+
     return Prediction(
         directory=os.path.join(root_directory, identifier),
         identifier=identifier,
         database=database,
         chains=chains,
         structure_sealed=user_configuration.get("structure-sealed", False),
-        p2rank_configuration="conservation_hmm" if conservation else "default",
+        p2rank_configuration=model,
         structure_file=structure_file,
         conservation="hmm" if conservation else "none",
         metadata={},

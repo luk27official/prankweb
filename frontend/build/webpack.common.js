@@ -134,5 +134,6 @@ function gtag() {
 gtag(\\"js\\", new Date());
 gtag(\\"config\\", \\"${ga}\\", {\\"anonymize_ip\\": true});
 </script>
-'`.replaceAll("\n", " "); // Result must be one liner else get compilation error.
+'`.replaceAll("\n", " ");
+  // Result must be a one-liner else we get compilation error.
 }

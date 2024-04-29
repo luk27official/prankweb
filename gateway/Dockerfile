@@ -3,8 +3,6 @@
 #
 FROM node:19.7-bullseye AS frontend
 
-ARG GOOGLE_ANALYTICS
-
 WORKDIR /opt/frontend
 
 # copy package.json and package-lock.json to prevent re-running npm ci on every code change
@@ -19,6 +17,8 @@ RUN npm ci
 FROM frontend AS build
 # copy the rest of the source codes and build the application
 COPY ./frontend/ ./
+
+ARG GOOGLE_ANALYTICS
 
 RUN npm run build
 

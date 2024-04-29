@@ -29,7 +29,8 @@ class View {
     this.uniprotSection = document.getElementById("input-uniprot-block");
     this.uniprotCode = document.getElementById("uniprot-code");
     this.message = document.getElementById("message");
-    this.conservation = document.getElementById("conservation");
+    this.conservationPdb = document.getElementById("conservation-pdb");
+    this.conservationUniprot = document.getElementById("conservation-uniprot");
     this.submit = document.getElementById("submit-button");
     //
     this.controller = null;
@@ -40,13 +41,13 @@ class View {
     //
     this.pdbInput.addEventListener(
       "change",
-      () => controller.onInputChange(View.PDB_VIEW))
+      () => controller.onInputChange(View.PDB_VIEW));
     this.userInput.addEventListener(
       "change",
-      () => controller.onInputChange(View.USER_VIEW))
+      () => controller.onInputChange(View.USER_VIEW));
     this.uniprotInput.addEventListener(
       "change",
-      () => controller.onInputChange(View.UNIPROT_VIEW))
+      () => controller.onInputChange(View.UNIPROT_VIEW));
     this.pdbSealStructure.addEventListener(
       "change",
       (event) => controller.onPdbSealedChange(event.target.checked));
@@ -209,7 +210,7 @@ class View {
     const label = document.createElement("label");
     label.appendChild(input);
     label.appendChild(document.createTextNode(
-      `\u00A0${chain}\u00A0\u00A0`))
+      `\u00A0${chain}\u00A0\u00A0`));
     label.className = "form-check-label";
     return label;
   }
@@ -262,9 +263,22 @@ class View {
   }
 
   getConservation() {
-    return this.conservation.checked;
+    // this does not apply to user uploaded files, those are treated differently as the user
+    // selects the model directly
+    switch (this.getInputSection()) {
+      case View.PDB_VIEW:
+        return this.conservationPdb.checked;
+      case View.UNIPROT_VIEW:
+        return this.conservationUniprot.checked;
+      default:
+        return false;
+    }
   }
 
+  getModelUserUpload() {
+    const selectedModel = document.querySelector('input[name="user-input-model"]:checked');
+    return selectedModel.value;
+  }
 }
 
 class Controller {
@@ -338,7 +352,7 @@ class Controller {
       return true;
     } else {
       if (chains.count > 0) {
-        this.view.setMessage("At least one chain must be selected.")
+        this.view.setMessage("At least one chain must be selected.");
       }
       return false;
     }
@@ -400,7 +414,7 @@ class Controller {
     if (!this.validatePdbCode(code)) {
       return;
     }
-    await this.fetchChainsForPdbCode(code, false)
+    await this.fetchChainsForPdbCode(code, false);
     if (code !== this.view.getPdbCode()) {
       // User changed the code in a meanwhile.
       return;
@@ -454,8 +468,7 @@ class Submit {
   submitUserFile(view) {
     const structure = view.getUserFileObject();
     const chains = view.getUserChains();
-    const conservation = view.getConservation();
-    //
+    const model = view.getModelUserUpload();
     const formData = new FormData();
     formData.append(
       "structure", structure, structure.name);
@@ -464,14 +477,14 @@ class Submit {
       this.asJsonBlob({
         "chains": chains,
         "structure-sealed": chains.length === 0,
-        "compute-conservation": conservation,
+        "prediction-model": model,
       }),
       "configuration.json");
     this.sendPostRequest("./api/v2/prediction/v3-user-upload", formData);
   }
 
   asJsonBlob(content) {
-    return new Blob([JSON.stringify(content)], {"type": "text/json"});
+    return new Blob([JSON.stringify(content)], { "type": "text/json" });
   }
 
   sendPostRequest(url, data) {
@@ -493,9 +506,9 @@ class Submit {
     const conservation = view.getConservation();
     let url;
     if (conservation) {
-      url = this.createUrl("v3-alphafold-conservation-hmm", code, [])
+      url = this.createUrl("v3-alphafold-conservation-hmm", code, []);
     } else {
-      url = this.createUrl("v3-alphafold", code, [])
+      url = this.createUrl("v3-alphafold", code, []);
     }
     window.location.href = url;
   }

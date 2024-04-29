@@ -81,19 +81,13 @@ def route_post_docking_file(database_name: str, prediction_name: str):
     return dt.post_task(prediction_name.upper(), data)
 
 @api_v2.route(
-    "/docking/<database_name>/<prediction_name>/public/<file_name>",
-    methods=["POST"]
+    "/docking/<database_name>/<prediction_name>/<task_hash>/public/<file_name>",
+    methods=["GET"]
 )
-def route_get_docking_file_with_param(database_name: str, prediction_name: str, file_name: str):
-    """Get a docking file from the server.
-    Request body should be a JSON object with the following fields:
-    - hash: str (a hash of the ligand with parameters)"""
-    data = request.get_json(force=True)
-    param = data.get("hash", None)
-    if data is None or param is None:
-        return "", 404
+def route_get_docking_file_with_param(database_name: str, prediction_name: str, task_hash: str, file_name: str):
+    """Get a docking file from the server."""
     dt = DockingTask(database_name=database_name)
-    return dt.get_file_with_post_param(prediction_name.upper(), file_name, param)
+    return dt.get_file_with_post_param(prediction_name.upper(), file_name, task_hash)
 
 @api_v2.route(
     "/docking/<database_name>/<prediction_name>/tasks",

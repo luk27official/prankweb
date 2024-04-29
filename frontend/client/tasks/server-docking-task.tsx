@@ -115,19 +115,8 @@ export async function dockingHash(pocket: string, smiles: string, exhaustiveness
  * @returns void
 */
 export async function downloadDockingResult(smiles: string, fileURL: string, pocket: string, exhaustiveness: string) {
-    const hash = await dockingHash(pocket, smiles, exhaustiveness);
-
     // https://stackoverflow.com/questions/50694881/how-to-download-file-in-react-js
-    fetch(fileURL, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "hash": hash
-        })
-    })
+    fetch(fileURL)
         .then((response) => response.blob())
         .then((blob) => {
             // Create blob link to download
@@ -181,16 +170,8 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
                     //download the computed data
                     if (individualTask.status === "successful") {
                         const hash = await dockingHash(task.pocket.toString(), individualTask.initialData.smiles, individualTask.initialData.exhaustiveness);
-                        const data = await fetch(`./api/v2/docking/${predictionInfo.database}/${predictionInfo.id}/public/result.json`, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                "hash": hash
-                            })
-                        }).then(res => res.json()).catch(err => console.log(err));
+                        const data = await fetch(`./api/v2/docking/${predictionInfo.database}/${predictionInfo.id}/${hash}/public/result.json`)
+                            .then(res => res.json()).catch(err => console.log(err));
                         tasks[i].responseData = data;
                     }
 
