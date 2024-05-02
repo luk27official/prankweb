@@ -3,7 +3,7 @@ import "../app.css";
 import "./right-panel.css";
 import { Model, DockingTaskProps } from "./types";
 
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, Button, Tooltip } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
@@ -48,7 +48,7 @@ function Row(props: { row: Model; plugin: PluginUIContext; }) {
                 <TableCell align="right">{row.vinaResult[0]}</TableCell>
                 <TableCell align="right">{row.vinaResult[1]}</TableCell>
                 <TableCell align="right">{row.vinaResult[2]}</TableCell>
-                <TableCell align="right"><a href="#" onClick={() => setModel(row.number)}>click</a></TableCell>
+                <TableCell align="center"><a href="#" onClick={() => setModel(row.number)}>click</a></TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -75,6 +75,34 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
         element.click();
     };
 
+    const tableLabels: { name: string, tooltip: string, align: "left" | "center" | "right"; }[] = [
+        {
+            name: "Rank",
+            tooltip: "Rank of the Vina result",
+            align: "center"
+        },
+        {
+            name: "Energy (kcal/mol)",
+            tooltip: "Predicted binding affinity",
+            align: "right"
+        },
+        {
+            name: "rmsd/lb (Å)",
+            tooltip: "RMSD lower bound relative to the first model",
+            align: "right"
+        },
+        {
+            name: "rmsd/ub (Å)",
+            tooltip: "RMSD upper bound relative to the first model",
+            align: "right"
+        },
+        {
+            name: "Show in Mol*",
+            tooltip: "Show the model in Mol* viewer",
+            align: "center"
+        }
+    ];
+
     return (
         <>
             <TableContainer component={Paper}>
@@ -82,11 +110,16 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
                     <TableHead>
                         <TableRow>
                             <TableCell />
-                            <TableCell align="center">Number</TableCell>
-                            <TableCell align="right">Energy</TableCell>
-                            <TableCell align="right">??</TableCell>
-                            <TableCell align="right">??</TableCell>
-                            <TableCell align="right">Show in Mol*</TableCell>
+                            {tableLabels.map((cell) => (
+                                <TableCell key={cell.name} align={cell.align}>
+                                    {cell.tooltip === "" ?
+                                        <span>{cell.name}</span> :
+                                        <Tooltip title={cell.tooltip} placement="top">
+                                            <span>{cell.name}</span>
+                                        </Tooltip>
+                                    }
+                                </TableCell>
+                            ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
