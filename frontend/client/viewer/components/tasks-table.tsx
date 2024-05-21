@@ -116,7 +116,7 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
     const handleResultClick = (serverTask: ServerTaskLocalStorageData) => {
         switch (serverTask.type) {
             case ServerTaskType.Docking:
-                downloadDockingResult(serverTask.params[0], serverTask.responseData[0].url, serverTask.pocket.toString(), serverTask.params[1]);
+                downloadDockingResult(serverTask.responseData[0].url);
                 break;
             default:
                 break;
@@ -248,4 +248,4 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
             </TableBody>
         </Table>
     );
-}
+};

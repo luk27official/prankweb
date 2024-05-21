@@ -90,6 +90,23 @@ class DockingTask:
         if data is None: #user did not provide any data with the post request
             return "", 400
 
+        required_fields = ["hash", "pocket", "smiles", "exhaustiveness", "bounding_box"]
+        for field in required_fields:
+            if field not in data:
+                return f"Field {field} is missing.", 400
+        
+        # those boundaries are arbitrary - given in the tsx task file
+        if len(data["smiles"]) > 300:
+            return "The requested SMILES is too long.", 400
+
+        try:
+            exhaustiveness = int(data["exhaustiveness"])
+            # the exhaustiveness parameter must be a number between 1 and 64
+            if exhaustiveness < 1 or exhaustiveness > 64:
+                raise ValueError
+        except ValueError:
+            return "The exhaustiveness parameter must be a number between 1 and 64.", 400
+
         taskinfo = TaskInfo(directory=directory, identifier=prediction_id, data=data)
 
         if os.path.exists(directory) and os.path.exists(_info_file(taskinfo)):

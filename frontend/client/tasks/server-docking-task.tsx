@@ -89,12 +89,11 @@ export async function computeDockingTaskOnBackend(prediction: PredictionInfo, po
             "bounding_box": box
         }),
     }).then((res) => {
-        console.log(res);
-    }
-    ).catch(err => {
-        console.log(err);
+        return res.json();
+    }).catch(err => {
+        console.error(err);
+        return null;
     });
-    return;
 }
 
 /**
@@ -110,13 +109,10 @@ export async function dockingHash(pocket: string, smiles: string, exhaustiveness
 
 /**
  * Downloads the result of the task.
- * @param smiles SMILES identifier
  * @param fileURL URL to download the result from
- * @param pocket Pocket identifier
- * @param exhaustiveness exhaustiveness value (for Autodock Vina)
  * @returns void
 */
-export async function downloadDockingResult(smiles: string, fileURL: string, pocket: string, exhaustiveness: string) {
+export async function downloadDockingResult(fileURL: string) {
     // https://stackoverflow.com/questions/50694881/how-to-download-file-in-react-js
     fetch(fileURL)
         .then((response) => response.blob())
@@ -185,4 +181,75 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
         });
     }
     return localStorage.getItem(`${predictionInfo.id}_serverTasks`);
+}
+
+/**
+ * Generates a bash script that can be used to run the docking task locally.
+ * @param smiles SMILES identifier of the ligand
+ * @param pocket Pocket data
+ * @param plugin Mol* plugin
+ * @param prediction Prediction info
+ * @returns A bash script that can be used to run the docking task locally.
+ */
+export function generateBashScriptForDockingTask(smiles: string, pocket: PocketData, plugin: PluginUIContext, prediction: PredictionInfo) {
+    const box = computeBoundingBox(plugin, pocket);
+    const url = getApiEndpoint(prediction.database, prediction.id).replace(".", window.location.host) + `/public/${prediction.metadata.structureName}`;
+
+    const script =
+        `#!/bin/bash
+# This script runs the docking task locally.
+# It requires Docker to be installed on the system.
+
+json_content='{
+    "receptor": "${prediction.metadata.structureName}",
+    "ligand": "ligand.smi",
+    "output": "output.pdbqt",
+    "center": {
+        "x": ${box.center.x},
+        "y": ${box.center.y},
+        "z": ${box.center.z}
+    },
+    "size": {
+        "x": ${box.size.x},
+        "y": ${box.size.y},
+        "z": ${box.size.z}
+    }
+}'
+
+echo "$json_content" > docking_parameters.json
+echo "${smiles}" > ligand.smi
+
+wget "${url}" -O ${prediction.metadata.structureName}.gz
+
+gunzip ${prediction.metadata.structureName}.gz
+
+docker run -it -v \$\{PWD\}/:/data ghcr.io/kiarka7/dodo:latest`;
+
+    return script;
+}
+
+/**
+ * Downloads the generated bash script with the current timestamp.
+ * @param script Bash script
+ * @returns void
+ */
+export async function downloadDockingBashScript(script: string) {
+    const today = new Date();
+    const filename = `docking-task-${today.toISOString()}.sh`;
+
+    const url = window.URL.createObjectURL(
+        new Blob([script]),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute(
+        'download',
+        filename,
+    );
+
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode!.removeChild(link);
+
+    return;
 }

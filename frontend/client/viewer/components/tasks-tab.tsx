@@ -9,7 +9,7 @@ import { Button, Paper, Typography } from "@mui/material";
 
 import "./tasks-tab.css";
 import { PredictionInfo } from "../../prankweb-api";
-import { computeDockingTaskOnBackend } from "../../tasks/server-docking-task";
+import { computeDockingTaskOnBackend, generateBashScriptForDockingTask, downloadDockingBashScript } from "../../tasks/server-docking-task";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { computePocketVolume } from "../../tasks/client-atoms-volume";
 import { TasksTable } from "./tasks-table";
@@ -73,21 +73,38 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             type: TaskType.Server,
             name: "Docking",
             compute: (params, customName, pocketIndex) => {
+                const smiles = params[0].replaceAll(" ", "");
+
+                const handleInvalidDockingInput = (baseMessage: string) => {
+                    if (baseMessage === "") {
+                        setInvalidInputMessage("");
+                        return;
+                    }
+
+                    setInvalidInputMessage(`${baseMessage} Try running the script below to run docking locally.`);
+                    setDockingScript(generateBashScriptForDockingTask(smiles, props.pockets[pocketIndex], props.plugin, props.predictionInfo));
+                };
+
                 // check if exhaustiveness is a number
                 const exhaustiveness = params[1].replaceAll(",", ".").replaceAll(" ", "");
-                if (isNaN(parseFloat(exhaustiveness))) {
-                    setInvalidInput(true);
+                if (isNaN(parseInt(exhaustiveness))) {
+                    handleInvalidDockingInput("Exhaustiveness must be an integer.");
                     return;
                 }
 
                 // 1-64 is the allowed range
                 if (Number(exhaustiveness) < 1 || Number(exhaustiveness) > 64) {
-                    setInvalidInput(true);
+                    handleInvalidDockingInput("Exhaustiveness must be in the range 1-64.");
                     return;
                 }
 
-                setInvalidInput(false);
-                const smiles = params[0].replaceAll(" ", "");
+                // check if SMILES is < 300 characters, otherwise
+                if (smiles.length > 300) {
+                    handleInvalidDockingInput("SMILES must be shorter than 300 characters.");
+                    return;
+                }
+
+                handleInvalidDockingInput("");
 
                 let savedTasks = localStorage.getItem(`${props.predictionInfo.id}_serverTasks`);
                 if (!savedTasks) savedTasks = "[]";
@@ -103,10 +120,13 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                     "discriminator": "server",
                 });
                 localStorage.setItem(`${props.predictionInfo.id}_serverTasks`, JSON.stringify(tasks));
-                computeDockingTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex], smiles, props.plugin, exhaustiveness);
+                const taskPostRequest = computeDockingTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex], smiles, props.plugin, exhaustiveness);
+                if (taskPostRequest === null) {
+                    tasks[tasks.length - 1].status = "failed";
+                }
             },
             parameterDescriptions: [
-                "Enter the molecule in SMILES format (e.g. c1ccccc1)",
+                "Enter the molecule in SMILES format (e.g. c1ccccc1), max 300 characters",
                 "Enter the exhaustiveness for Autodock Vina (recommended: 32, allowed range: 1-64)"
             ],
             parameterDefaults: ["", "32"]
@@ -118,7 +138,8 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
     const [name, setName] = React.useState<string>("");
     const [parameters, setParameters] = React.useState<string[]>([]);
     const [forceUpdate, setForceUpdate] = React.useState<number>(0);
-    const [invalidInput, setInvalidInput] = React.useState<boolean>(false);
+    const [invalidInputMessage, setInvalidInputMessage] = React.useState<string>("");
+    const [dockingScript, setDockingScript] = React.useState<string>("");
 
     const handleTaskTypeChange = (event: SelectChangeEvent) => {
         const newTask = tasks.find(task => task.id == Number(event.target.value))!;
@@ -219,16 +240,17 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                             )
                         }
                         {
-                            invalidInput &&
-                            <tr>
-                                <td colSpan={2}>
-                                    <Typography variant="body1" style={{ color: "red" }}>Error: The task could not be created. Check the formatting.</Typography>
-                                </td>
-                            </tr>
+                            invalidInputMessage === "" ? null :
+                                <tr>
+                                    <td colSpan={2}>
+                                        <Typography variant="body1" style={{ color: "red" }}>{invalidInputMessage}</Typography>
+                                    </td>
+                                </tr>
                         }
                         <tr>
                             <td>
                                 <Button variant="contained" onClick={handleSubmitButton}>Create task</Button>
+                                {dockingScript !== "" && <>&nbsp;<Button onClick={() => downloadDockingBashScript(dockingScript)} variant="contained" color="warning">Download the script</Button></>}
                             </td>
                             <td>
 
