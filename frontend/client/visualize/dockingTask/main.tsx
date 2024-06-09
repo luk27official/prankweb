@@ -29,7 +29,7 @@ export function DockingTask(dp: DockingTaskProps) {
 
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
             // Download pdb/mmcif and create a model in Mol*.
-            const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`).then(result => result);
+            const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 0.5).then(result => result);
             // Load the docked ligand into Mol*.
             const ligandData = await loadLigandIntoMolstar(plugin, dockedMolecule);
         };

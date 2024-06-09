@@ -27,9 +27,10 @@ let conservationNormalized: number[];
  * Loads the structure to be predicted and adds the polymer representations to the viewer.
  * @param plugin Mol* plugin
  * @param structureUrl URL of the structure to be predicted
+ * @param structureAlpha Alpha of the structure (0-1)
  * @returns An array containing the model and structure.
  */
-export async function loadStructureIntoMolstar(plugin: PluginUIContext, structureUrl: string) {
+export async function loadStructureIntoMolstar(plugin: PluginUIContext, structureUrl: string, structureAlpha: number = 1) {
     const data = await plugin.builders.data.download({
         url: Asset.Url(structureUrl),
         isBinary: false
@@ -50,6 +51,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             type: PolymerViewType.Gaussian_Surface,
             representation: await plugin.builders.structure.representation.addRepresentation(polymer, {
                 type: 'gaussian-surface', //molecular-surface could be probably better, but is slower
+                typeParams: { alpha: structureAlpha },
                 color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
                 ref: "polymer_gaussian"
             })
@@ -57,6 +59,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
 
         await plugin.builders.structure.representation.addRepresentation(polymer, {
             type: 'ball-and-stick',
+            typeParams: { alpha: structureAlpha },
             color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
             ref: "polymer_balls"
         }).then((e) => {
@@ -70,6 +73,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
 
         await plugin.builders.structure.representation.addRepresentation(polymer, {
             type: 'cartoon',
+            typeParams: { alpha: structureAlpha },
             color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
             ref: "polymer_cartoon"
         }).then((e) => {
@@ -567,9 +571,10 @@ export async function createPocketsGroupFromJson(plugin: PluginUIContext, struct
  * @param pocket Current pocket data
  * @param groupName Name of the group to which the pocket will be assigned
  * @param group Group to which the pocket will be assigned (from createPocketsGroupFromJson())
+ * @param alpha Alpha of the pocket (0-1)
  * @returns void
  */
-async function createPocketFromJson(plugin: PluginUIContext, structure: StateObjectSelector, pocket: PocketData, groupName: string, group: any) { //group should not be any but i cannot figure out the right type
+export async function createPocketFromJson(plugin: PluginUIContext, structure: StateObjectSelector, pocket: PocketData, groupName: string, group: any, alpha: number = 1) { //group should not be any but i cannot figure out the right type
     const group2 = group.apply(StateTransforms.Misc.CreateGroup, { label: groupName }, { ref: groupName }, { selectionTags: groupName });
 
     const atomsExpression = MS.struct.generator.atomGroups({
