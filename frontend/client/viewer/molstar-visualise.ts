@@ -553,12 +553,13 @@ async function overPaintPocketsWithConservation(plugin: PluginUIContext, predict
  * @param structure Mol* structure (returned from the first call of loadStructureIntoMolstar())
  * @param groupName Group name (in this case "Pockets")
  * @param prediction Prediction data
+ * @param alpha Alpha for the pocket
  */
-export async function createPocketsGroupFromJson(plugin: PluginUIContext, structure: StateObjectSelector, groupName: string, prediction: PredictionData) {
+export async function createPocketsGroupFromJson(plugin: PluginUIContext, structure: StateObjectSelector, groupName: string, prediction: PredictionData, alpha: number = 1) {
     const builder = plugin.state.data.build();
     const group = builder.to(structure).apply(StateTransforms.Misc.CreateGroup, { label: groupName }, { ref: groupName });
     prediction.pockets.map((pocket, i) => {
-        createPocketFromJson(plugin, structure, pocket, `Pocket ${i + 1}`, group);
+        createPocketFromJson(plugin, structure, pocket, `Pocket ${i + 1}`, group, alpha);
     });
     await builder.commit();
 }
@@ -597,6 +598,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //the first one selects the whole residues and does not color them -> for overpaints
     const repr_surface: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'gaussian-surface',
+        typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
     }));
 
@@ -610,6 +612,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //the second one selects the atoms and colors them
     const repr_surface2: StateObjectSelector = atomsSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'gaussian-surface',
+        typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(color) },
         size: 'physical', sizeParams: { scale: 1.10 }
     }));
@@ -624,6 +627,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //the third one selects the whole residues and colors them
     const repr_surface3: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'gaussian-surface',
+        typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(color) },
         size: 'physical', sizeParams: { scale: 1.10 }
     }));
@@ -639,6 +643,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //the first one selects the whole residues and does not color them -> again for overpaints
     const repr_ball_stick: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'ball-and-stick',
+        typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
         size: 'physical', sizeParams: { scale: 1.10 }
     }));
@@ -653,6 +658,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //the second one selects the atoms and colors them
     const repr_ball_stick2: StateObjectSelector = atomsSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'ball-and-stick',
+        typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(color) },
         size: 'physical', sizeParams: { scale: 1.50 }
     }));
@@ -667,6 +673,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //the third one selects the whole residues and colors them
     const repr_ball_stick3: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'ball-and-stick',
+        typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(color) },
         size: 'physical', sizeParams: { scale: 1.50 }
     }));
