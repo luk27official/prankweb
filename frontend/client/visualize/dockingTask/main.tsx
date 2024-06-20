@@ -5,7 +5,7 @@ import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { createLigandRepresentations, loadStructureIntoMolstar, updatePolymerView } from "../../viewer/molstar-visualise";
+import { createLigandRepresentations, createPocketsGroupFromJson, loadStructureIntoMolstar, showPocketInCurrentRepresentation } from "../../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../../prankweb-api";
 import { Model, DockingTaskProps } from "./types";
@@ -13,7 +13,8 @@ import parsePdbqt from "./pdbqt-parser";
 
 import { DockingTaskVisualizationBox } from "./visualization-box";
 import { DockingTaskRightPanel } from "./right-panel";
-
+import { StateObjectSelector } from "molstar/lib/mol-state";
+import { PocketData, PocketsViewType, PredictionData } from "../../custom-types";
 
 let dockedMolecule: any; // to be able to access the docked molecule from here and avoid multiple fetches
 
@@ -32,6 +33,39 @@ export function DockingTask(dp: DockingTaskProps) {
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 0.5).then(result => result);
             // Load the docked ligand into Mol*.
             const ligandData = await loadLigandIntoMolstar(plugin, dockedMolecule);
+
+            // Add the pocket representations.
+            // First, we have to download the prediction file.
+            const prediction: PredictionData = await fetch(`${baseUrl}/prediction.json`).then(res => res.json()).catch(err => console.log(err));
+
+            // Then, download information about the docking tasks.
+            const secondUrl: string = getApiEndpoint(dp.database, dp.id, "docking");
+            const dockingTasks = await fetch(`${secondUrl}/tasks`).then(res => res.json()).catch(err => console.log(err));
+
+            const builder = plugin.state.data.build();
+            const structure: StateObjectSelector = molData[1];
+
+            // Find the pocket rank that we are interested in.
+            let pocketRank: string | undefined = undefined;
+            dockingTasks["tasks"].forEach((task: any) => {
+                if (task["initialData"]["hash"] === dp.hash) {
+                    console.log(task["initialData"]);
+                    pocketRank = task["initialData"]["pocket"];
+                    return;
+                }
+            });
+
+            const pocket = prediction.pockets.find((pocket: PocketData) => pocket.rank === pocketRank);
+            if (!pocket) return;
+            pocket.color = "ff0000";
+            await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 0.75);
+            await builder.commit();
+
+            // TODO: add option to change the representations
+            prediction.pockets.forEach((pocket: PocketData, idx: number) => {
+                showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Residues_Color, idx, pocket.rank === pocketRank);
+            });
+            // TODO: think about adding interactions (if possible?)
         };
         loadPlugin();
 
@@ -59,10 +93,11 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
     const trajectory = await plugin.builders.structure.parseTrajectory(ligandData, "pdbqt");
     const model = await plugin.builders.structure.createModel(trajectory);
     const structure = await plugin.builders.structure.createStructure(model, { name: 'model', params: {} });
+    const preset = await plugin.builders.structure.representation.applyPreset(structure, 'polymer-and-ligand');
 
     await createLigandRepresentations(plugin, structure);
 
-    return [model, structure];
+    return [model, structure, preset];
 }
 
 async function createMolstarViewer() {
