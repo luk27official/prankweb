@@ -931,6 +931,20 @@ export function getPocketAtomCoordinates(plugin: PluginUIContext, ids: string[])
     return coordinates;
 }
 
+/**
+ * Focuses the camera on the second loaded structure. Typically used for focusing on the ligand.
+ * @param plugin Mol* plugin
+ * @returns void
+ */
+export function focusOnSecondLoadedStructure(plugin: PluginUIContext) {
+    const data = plugin.managers.structure.hierarchy.current.structures[1]?.cell.obj?.data;
+    if (!data) return;
+    const query = MS.struct.generator.all;
+    const sel = Script.getStructureSelection(query, data);
+    const loci = StructureSelection.toLociWithSourceUnits(sel);
+    plugin.managers.camera.focusLoci(loci);
+}
+
 //cc: https://github.com/scheuerv/molart/
 function getStructureElementLoci(loci: Loci): StructureElement.Loci | undefined {
     if (loci.kind == "bond-loci") {
