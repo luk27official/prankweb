@@ -52,7 +52,6 @@ export function DockingTask(dp: DockingTaskProps) {
             let pocketRank: string | undefined = undefined;
             dockingTasks["tasks"].forEach((task: any) => {
                 if (task["initialData"]["hash"] === dp.hash) {
-                    console.log(task["initialData"]);
                     pocketRank = task["initialData"]["pocket"];
                     return;
                 }

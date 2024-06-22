@@ -23,6 +23,10 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plu
         focusOnSecondLoadedStructure(plugin);
     };
 
+    const resetCamera = () => {
+        plugin.canvas3d?.requestCameraReset();
+    };
+
     return (
         <>
             <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "70vh" }}></div>
@@ -58,6 +62,9 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plu
                 </FormControl>
                 <FormControl size="small" className="visualization-toolbox-formcontrol">
                     <Button variant="contained" onClick={() => focusLigand()}>Focus</Button>
+                </FormControl>
+                <FormControl size="small" className="visualization-toolbox-formcontrol">
+                    <Button variant="contained" onClick={() => resetCamera()}>Reset camera</Button>
                 </FormControl>
             </div>
         </>
