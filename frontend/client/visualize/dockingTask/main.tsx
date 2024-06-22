@@ -21,6 +21,8 @@ let dockedMolecule: any; // to be able to access the docked molecule from here a
 export function DockingTask(dp: DockingTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
     const [pdbqtModels, setPdbqtModels] = React.useState<Model[]>([]);
+    const [pocketRank, setPocketRank] = React.useState<string>("");
+    const [prediction, setPrediction] = React.useState<PredictionData | undefined>(undefined);
 
     // this is a hook that runs when the component is mounted
     useEffect(() => {
@@ -37,6 +39,7 @@ export function DockingTask(dp: DockingTaskProps) {
             // Add the pocket representations.
             // First, we have to download the prediction file.
             const prediction: PredictionData = await fetch(`${baseUrl}/prediction.json`).then(res => res.json()).catch(err => console.log(err));
+            setPrediction(prediction);
 
             // Then, download information about the docking tasks.
             const secondUrl: string = getApiEndpoint(dp.database, dp.id, "docking");
@@ -54,6 +57,7 @@ export function DockingTask(dp: DockingTaskProps) {
                     return;
                 }
             });
+            setPocketRank(pocketRank!);
 
             const pocket = prediction.pockets.find((pocket: PocketData) => pocket.rank === pocketRank);
             if (!pocket) return;
@@ -61,9 +65,8 @@ export function DockingTask(dp: DockingTaskProps) {
             await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 0.75);
             await builder.commit();
 
-            // TODO: add option to change the representations
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
-                showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Residues_Color, idx, pocket.rank === pocketRank);
+                showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Atoms_Color, idx, pocket.rank === pocketRank);
             });
             // TODO: think about adding interactions (if possible?)
         };
@@ -74,9 +77,19 @@ export function DockingTask(dp: DockingTaskProps) {
         setPdbqtModels(parsedModels);
     }, []);
 
+    const changePocketsView = (pocketsView: PocketsViewType) => {
+        if (plugin === undefined || prediction === undefined) {
+            return;
+        }
+
+        prediction.pockets.forEach((pocket: PocketData, idx: number) => {
+            showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
+        });
+    };
+
     return <div style={{ display: "flex" }}>
         <div style={{ width: "50%", margin: "5px" }}>
-            <DockingTaskVisualizationBox plugin={plugin!} />
+            <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} />
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
             <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} />
