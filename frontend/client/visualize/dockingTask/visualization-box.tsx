@@ -1,8 +1,8 @@
 import React from "react";
 import { PocketsViewType, PolymerViewType } from "../../custom-types";
-import { FormControl, FormHelperText, MenuItem, Select } from "@mui/material";
+import { FormControl, FormHelperText, MenuItem, Select, Button } from "@mui/material";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { updatePolymerView } from "../../viewer/molstar-visualise";
+import { updatePolymerView, focusOnSecondLoadedStructure } from "../../viewer/molstar-visualise";
 import "../app.css";
 
 export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plugin: PluginUIContext; changePocketsView: (pocketsView: PocketsViewType) => void; }) {
@@ -17,6 +17,10 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plu
     const changePocketsViewLocal = (pocketsView: PocketsViewType) => {
         setPocketsView(pocketsView);
         changePocketsView(pocketsView);
+    };
+
+    const focusLigand = () => {
+        focusOnSecondLoadedStructure(plugin);
     };
 
     return (
@@ -51,6 +55,9 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plu
                         <MenuItem value={PocketsViewType.Surface_Residues_Color}>Surface (residues)</MenuItem>
                     </Select>
                     <FormHelperText sx={{ textAlign: "center" }}>Pocket visualization</FormHelperText>
+                </FormControl>
+                <FormControl size="small" className="visualization-toolbox-formcontrol">
+                    <Button variant="contained" onClick={() => focusLigand()}>Focus</Button>
                 </FormControl>
             </div>
         </>
