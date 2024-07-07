@@ -26,7 +26,8 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
     };
 
     const focusLigand = () => {
-        focusOnSecondLoadedStructure(plugin);
+        // Focus on the ligand with extra radius of 7 Å.
+        focusOnSecondLoadedStructure(plugin, 7);
     };
 
     const resetCamera = () => {
