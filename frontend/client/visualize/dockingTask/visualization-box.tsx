@@ -1,11 +1,11 @@
 import React from "react";
-import { PocketsViewType, PolymerViewType } from "../../custom-types";
+import { PocketData, PocketsViewType, PolymerViewType } from "../../custom-types";
 import { FormControl, FormHelperText, MenuItem, Select, Button } from "@mui/material";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { updatePolymerView, focusOnSecondLoadedStructure } from "../../viewer/molstar-visualise";
+import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket } from "../../viewer/molstar-visualise";
 import "../app.css";
 
-export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plugin: PluginUIContext; changePocketsView: (pocketsView: PocketsViewType) => void; }) {
+export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket }: { plugin: PluginUIContext; changePocketsView: (pocketsView: PocketsViewType) => void; pocket: PocketData | undefined; }) {
     const [polymerView, setPolymerView] = React.useState<PolymerViewType>(PolymerViewType.Gaussian_Surface);
     const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Surface_Atoms_Color);
 
@@ -17,6 +17,11 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plu
     const changePocketsViewLocal = (pocketsView: PocketsViewType) => {
         setPocketsView(pocketsView);
         changePocketsView(pocketsView);
+    };
+
+    const focusPocket = () => {
+        if (!pocket) return;
+        focusOnPocket(plugin, pocket);
     };
 
     const focusLigand = () => {
@@ -61,7 +66,10 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView }: { plu
                     <FormHelperText sx={{ textAlign: "center" }}>Pocket visualization</FormHelperText>
                 </FormControl>
                 <FormControl size="small" className="visualization-toolbox-formcontrol">
-                    <Button variant="contained" onClick={() => focusLigand()}>Focus</Button>
+                    <Button variant="contained" onClick={() => focusPocket()}>Focus</Button>
+                </FormControl>
+                <FormControl size="small" className="visualization-toolbox-formcontrol">
+                    <Button variant="contained" onClick={() => focusLigand()}>Focus ligand</Button>
                 </FormControl>
                 <FormControl size="small" className="visualization-toolbox-formcontrol">
                     <Button variant="contained" onClick={() => resetCamera()}>Reset camera</Button>

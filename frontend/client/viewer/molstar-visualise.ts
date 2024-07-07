@@ -945,6 +945,21 @@ export function focusOnSecondLoadedStructure(plugin: PluginUIContext) {
     plugin.managers.camera.focusLoci(loci);
 }
 
+/**
+ * Focus the camera on the pocket
+ * @param plugin Mol* plugin
+ * @param pocket Pocket data
+ * @returns void
+ */
+export function focusOnPocket(plugin: PluginUIContext, pocket: PocketData) {
+    const data = plugin.managers.structure.hierarchy.current.structures[0]?.cell.obj?.data;
+    if (!data) return;
+
+    const sel = getSurfaceAtomSelection(plugin, pocket.surface);
+    const loci = StructureSelection.toLociWithSourceUnits(sel);
+    plugin.managers.camera.focusLoci(loci);
+}
+
 //cc: https://github.com/scheuerv/molart/
 function getStructureElementLoci(loci: Loci): StructureElement.Loci | undefined {
     if (loci.kind == "bond-loci") {

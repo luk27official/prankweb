@@ -88,7 +88,7 @@ export function DockingTask(dp: DockingTaskProps) {
 
     return <div style={{ display: "flex" }}>
         <div style={{ width: "50%", margin: "5px" }}>
-            <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} />
+            <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} pocket={prediction?.pockets.find((p: PocketData) => p.rank === pocketRank)} />
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
             <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} />
