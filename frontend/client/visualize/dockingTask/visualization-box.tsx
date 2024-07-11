@@ -88,7 +88,7 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
                     <div className="visualization-toolbox-option">
                         <div className="visualization-toolbox-option-description">
                             <FormControl size="small" className="visualization-toolbox-formcontrol">
-                                <Button variant="outlined" onClick={() => focusPocket()}>Focus</Button>
+                                <Button variant="outlined" onClick={() => focusPocket()}>Focus pocket</Button>
                             </FormControl>
                         </div>
                     </div>
