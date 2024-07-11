@@ -5,3 +5,7 @@
 .MuiTablePagination-displayedRows {
     margin: 0;
 }
+
+#navigation {
+    max-width: none;
+}
