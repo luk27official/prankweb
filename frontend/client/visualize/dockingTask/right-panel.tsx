@@ -178,7 +178,10 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Button variant="contained" onClick={handleDownload} style={{ marginTop: "1em" }}>Download result</Button>
+            <p style={{ marginTop: "1em" }}>
+                Note that the bounding box of the ligand may not be accurate and serves only as a visual aid.
+            </p>
+            <Button variant="contained" onClick={handleDownload}>Download result</Button>
         </>
     );
 }
