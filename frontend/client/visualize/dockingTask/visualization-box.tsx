@@ -37,7 +37,7 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
     return (
         <>
             <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "75vh" }}></div>
-            <div className="visualization-toolbox-container">
+            <div className="visualization-toolbox-container" id="visualization-toolbox">
                 <div className="visualization-toolbox-row">
                     <div className="visualization-toolbox-option">
                         <div className="visualization-toolbox-option-description">

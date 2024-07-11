@@ -108,6 +108,7 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
             return;
         }
 
+        // update the model in React when the user changes the model in Mol*, not through our UI
         plugin.state.data.events.changed.subscribe(() => {
             if (updating.current) {
                 return;

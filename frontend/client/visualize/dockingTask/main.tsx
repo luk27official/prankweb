@@ -30,6 +30,15 @@ export function DockingTask(dp: DockingTaskProps) {
             const plugin: PluginUIContext = await createMolstarViewer();
             setPlugin(plugin);
 
+            // if the plugin is maximized, hide the React components
+            plugin.layout.events.updated.subscribe(() => {
+                const contentWrapper = document.getElementById('content-wrapper')!;
+                const visualizationToolbox = document.getElementById('visualization-toolbox')!;
+
+                contentWrapper.style.display = plugin.layout.state.isExpanded ? "none" : "block";
+                visualizationToolbox.style.display = plugin.layout.state.isExpanded ? "none" : "block";
+            });
+
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
             // Download pdb/mmcif and create a model in Mol*.
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 0.5).then(result => result);
