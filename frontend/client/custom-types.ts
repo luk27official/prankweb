@@ -139,6 +139,12 @@ export interface PocketRepresentation {
     type: PocketsViewType;
     representation: StateObjectSelector; //Mol* representation
     coloredPocket: boolean; //for efficiency when overpainting
+    selectionType: PocketSelectionType; //either a representation of atoms or whole residues
+}
+
+export enum PocketSelectionType {
+    Atoms = 0,
+    Residues = 1
 }
 
 /**

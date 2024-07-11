@@ -1,7 +1,7 @@
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { Color } from "molstar/lib/mol-util/color";
 import { Asset } from "molstar/lib/mol-util/assets";
-import { AlphaFoldColorsMolStar, AlphaFoldThresholdsMolStar, PredictionData, PocketData, MolstarResidue, ChainData, PolymerRepresentation, PolymerColorType, PolymerViewType, PocketRepresentation, PocketsViewType, Point3D } from '../custom-types';
+import { AlphaFoldColorsMolStar, AlphaFoldThresholdsMolStar, PredictionData, PocketData, MolstarResidue, ChainData, PolymerRepresentation, PolymerColorType, PolymerViewType, PocketRepresentation, PocketsViewType, Point3D, PocketSelectionType } from '../custom-types';
 import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
 import { MolScriptBuilder as MS } from "molstar/lib/mol-script/language/builder";
 import { createStructureRepresentationParams } from "molstar/lib/mol-plugin-state/helpers/structure-representation-params";
@@ -607,6 +607,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Surface_Atoms_Color,
         representation: repr_surface,
         coloredPocket: false,
+        selectionType: PocketSelectionType.Residues,
     });
 
     //the second one selects the atoms and colors them
@@ -622,6 +623,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Surface_Atoms_Color,
         representation: repr_surface2,
         coloredPocket: true,
+        selectionType: PocketSelectionType.Atoms,
     });
 
     //the third one selects the whole residues and colors them
@@ -637,6 +639,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Surface_Residues_Color,
         representation: repr_surface3,
         coloredPocket: true,
+        selectionType: PocketSelectionType.Residues,
     });
 
     //create the ball and stick representations
@@ -653,6 +656,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Ball_Stick_Residues_Color,
         representation: repr_ball_stick,
         coloredPocket: false,
+        selectionType: PocketSelectionType.Residues,
     });
 
     //the second one selects the atoms and colors them
@@ -668,6 +672,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Ball_Stick_Atoms_Color,
         representation: repr_ball_stick2,
         coloredPocket: true,
+        selectionType: PocketSelectionType.Atoms,
     });
 
     //the third one selects the whole residues and colors them
@@ -683,6 +688,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Ball_Stick_Residues_Color,
         representation: repr_ball_stick3,
         coloredPocket: true,
+        selectionType: PocketSelectionType.Residues,
     });
 }
 
@@ -959,6 +965,31 @@ export function focusOnPocket(plugin: PluginUIContext, pocket: PocketData) {
     const sel = getSurfaceAtomSelection(plugin, pocket.surface);
     const loci = StructureSelection.toLociWithSourceUnits(sel);
     plugin.managers.camera.focusLoci(loci);
+}
+
+/**
+ * Create a bounding box for the pocket in all representations
+ * @param plugin Mol* plugin
+ * @param pocket Pocket data
+ * @returns void
+ */
+export async function createBoundingBoxForPocket(plugin: PluginUIContext, pocket: PocketData) {
+    const data = plugin.managers.structure.hierarchy.current.structures[0]?.cell.obj?.data;
+    if (!data) return;
+
+    const builder = plugin.state.data.build();
+    const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name
+        && (e.selectionType === PocketSelectionType.Residues || e.type === PocketsViewType.Ball_Stick_Atoms_Color)
+        // for the ball and stick representation we need to select the atoms (the bounding box is slightly smaller)
+    );
+
+    for (const element of pocketReprs) {
+        builder.to(element.representation).apply(StateTransforms.Representation.StructureBoundingBox3D, {
+            color: Color(0x000000),
+        });
+    }
+
+    await builder.commit();
 }
 
 //cc: https://github.com/scheuerv/molart/

@@ -5,7 +5,7 @@ import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { createLigandRepresentations, createPocketsGroupFromJson, loadStructureIntoMolstar, showPocketInCurrentRepresentation } from "../../viewer/molstar-visualise";
+import { createBoundingBoxForPocket, createLigandRepresentations, createPocketsGroupFromJson, loadStructureIntoMolstar, showPocketInCurrentRepresentation } from "../../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../../prankweb-api";
 import { Model, DockingTaskProps } from "./types";
@@ -72,6 +72,7 @@ export function DockingTask(dp: DockingTaskProps) {
             pocket.color = "ff0000";
             await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 0.75);
             await builder.commit();
+            await createBoundingBoxForPocket(plugin, pocket);
 
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
                 showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Atoms_Color, idx, pocket.rank === pocketRank);
