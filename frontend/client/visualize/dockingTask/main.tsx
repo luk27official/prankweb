@@ -77,7 +77,6 @@ export function DockingTask(dp: DockingTaskProps) {
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
                 showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Atoms_Color, idx, pocket.rank === pocketRank);
             });
-            // TODO: think about adding interactions (if possible?)
         };
         loadPlugin();
 

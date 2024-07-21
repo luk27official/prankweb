@@ -51,6 +51,9 @@ function Row(props: { row: Model; setModel: (model: number) => void; currentMode
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1, whiteSpace: "pre-line" }}>
+                            <p>
+                                <i>AutoDock Vina <a href="https://userguide.mdanalysis.org/1.0.1/formats/reference/pdbqt.html#pdbqt-specification">PDBQT</a> result for model {row.number}</i>
+                            </p>
                             <pre>
                                 {row.originalContent}
                             </pre>
