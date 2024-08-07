@@ -261,7 +261,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             </Paper>
             &nbsp;
             <Paper>
-                <Typography variant="h6" style={{ padding: 10 }}>Finished tasks</Typography>
+                <Typography variant="h6" style={{ padding: 10 }}>Tasks</Typography>
                 <TasksTable pocket={null} predictionInfo={props.predictionInfo} />
             </Paper>
         </div>
