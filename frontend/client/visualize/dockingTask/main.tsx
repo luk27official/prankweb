@@ -5,7 +5,7 @@ import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { createBoundingBoxForPocket, createLigandRepresentations, createPocketsGroupFromJson, loadStructureIntoMolstar, showPocketInCurrentRepresentation } from "../../viewer/molstar-visualise";
+import { createBoundingBoxForPocket, createPocketsGroupFromJson, loadStructureIntoMolstar, setStructureTransparency, showPocketInCurrentRepresentation } from "../../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../../prankweb-api";
 import { Model, DockingTaskProps } from "./types";
@@ -42,7 +42,8 @@ export function DockingTask(dp: DockingTaskProps) {
 
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
             // Download pdb/mmcif and create a model in Mol*.
-            const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 0.5, "0x0000ff").then(result => result);
+            const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 1, "0x0000ff").then(result => result);
+            setStructureTransparency(plugin, 0.5);
             // Load the docked ligand into Mol*.
             const ligandData = await loadLigandIntoMolstar(plugin, dockedMolecule);
 
@@ -71,7 +72,7 @@ export function DockingTask(dp: DockingTaskProps) {
             const pocket = prediction.pockets.find((pocket: PocketData) => pocket.rank === pocketRank);
             if (!pocket) return;
             pocket.color = "ff0000";
-            await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 0.75);
+            await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 1);
             await builder.commit();
             await createBoundingBoxForPocket(plugin, pocket);
 

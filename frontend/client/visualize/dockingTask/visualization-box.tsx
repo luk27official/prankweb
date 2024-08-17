@@ -1,8 +1,8 @@
 import React from "react";
 import { PocketData, PocketsViewType, PolymerViewType } from "../../custom-types";
-import { FormControl, FormHelperText, MenuItem, Select, Button } from "@mui/material";
+import { FormControl, FormHelperText, MenuItem, Select, Button, Slider } from "@mui/material";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket } from "../../viewer/molstar-visualise";
+import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket, setStructureTransparency } from "../../viewer/molstar-visualise";
 import "../app.css";
 import "../../viewer/components/visualization-tool-box.css";
 
@@ -108,6 +108,18 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
                             </FormControl>
                         </div>
                     </div>
+                </div>
+                <div className="visualization-toolbox-row">
+                    <Slider size="small"
+                        defaultValue={50}
+                        aria-label="Structure opacity"
+                        min={0}
+                        max={100}
+                        valueLabelDisplay="auto"
+                        onChange={(event, value) => {
+                            setStructureTransparency(plugin, 1 - (value as number / 100));
+                        }}
+                    ></Slider>
                 </div>
             </div>
         </>

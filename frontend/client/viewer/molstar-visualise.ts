@@ -54,7 +54,8 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
                 typeParams: { alpha: structureAlpha },
                 color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
                 ref: "polymer_gaussian"
-            })
+            }),
+            transparentRepresentation: null
         });
 
         await plugin.builders.structure.representation.addRepresentation(polymer, {
@@ -66,7 +67,8 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             //hide ball and stick representation
             polymerRepresentations.push({
                 type: PolymerViewType.Atoms,
-                representation: e
+                representation: e,
+                transparentRepresentation: null
             });
             setSubtreeVisibility(plugin.state.data, polymerRepresentations.find(e => e.type === PolymerViewType.Atoms)!.representation.ref, true);
         });
@@ -80,7 +82,8 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             //hide ball and stick representation
             polymerRepresentations.push({
                 type: PolymerViewType.Cartoon,
-                representation: e
+                representation: e,
+                transparentRepresentation: null
             });
             setSubtreeVisibility(plugin.state.data, polymerRepresentations.find(e => e.type === PolymerViewType.Cartoon)!.representation.ref, true);
         });
@@ -162,6 +165,33 @@ export function updatePolymerView(value: PolymerViewType, plugin: PluginUIContex
         } else {
             setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
         }
+    }
+}
+
+/**
+ * Sets the transparency of all polymer representations.
+ * @param plugin Mol* plugin
+ * @param alpha Structure alpha (0-1)
+ */
+export async function setStructureTransparency(plugin: PluginUIContext, alpha: number) {
+    const params: any = [];
+
+    const query = MS.struct.generator.all;
+    const sel = Script.getStructureSelection(query, plugin.managers.structure.hierarchy.current.structures[0].cell.obj!.data);
+    const bundle = Bundle.fromSelection(sel);
+
+    params.push({
+        bundle: bundle,
+        value: alpha
+    });
+
+    for (const element of polymerRepresentations) {
+        if (element.transparentRepresentation) {
+            plugin.build().delete(element.transparentRepresentation.ref);
+        }
+        const r = plugin.build().to(element.representation.ref).apply(StateTransforms.Representation.TransparencyStructureRepresentation3DFromBundle, { layers: params }).commit();
+        element.transparentRepresentation = await r;
+        await plugin.build().commit({ doNotUpdateCurrent: true });
     }
 }
 
@@ -842,6 +872,7 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Atoms,
         representation: repr_ball_stick_predict.selector,
+        transparentRepresentation: null
     });
 
     const repr_surface_predict = selection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -852,6 +883,7 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Gaussian_Surface,
         representation: repr_surface_predict.selector,
+        transparentRepresentation: null
     });
 
     const repr_cartoon_predict = selection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -862,6 +894,7 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Cartoon,
         representation: repr_cartoon_predict.selector,
+        transparentRepresentation: null
     });
 
     await builder.commit();
