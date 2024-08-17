@@ -116,6 +116,11 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
     const structure = await plugin.builders.structure.createStructure(model, { name: 'model', params: {} });
     const preset = await plugin.builders.structure.representation.applyPreset(structure, 'polymer-and-ligand');
 
+    // TODO: have a look if there isn't a need to color other
+    // ligand types as well (carbohydrates)
+    console.log(preset?.components?.ligand);
+    console.log(preset?.representations?.ligand);
+    // right now, the coloring is done in the following method
     await createLigandRepresentations(plugin, structure);
 
     return [model, structure, preset];

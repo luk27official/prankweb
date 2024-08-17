@@ -91,15 +91,36 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
     return [model, structure];
 }
 
-export async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector) {
+export async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector, color: `0x${string}` = "0x") {
     const shownGroups = ["water", "ion", "ligand", "nucleic", "lipid", "branched", "non-standard", "coarse"] as const;
+
+    const representations = [];
 
     for (const group of shownGroups) {
         const component = await plugin.builders.structure.tryCreateComponentStatic(structure, group);
         if (component) {
-            plugin.builders.structure.representation.addRepresentation(component, {
+            const r = await plugin.builders.structure.representation.addRepresentation(component, {
                 type: 'ball-and-stick',
             });
+            representations.push(r);
+        }
+    }
+
+    // if a color has been provided (not the default value)
+    if (color !== "0x") {
+        const query = MS.struct.generator.all;
+        const sel = Script.getStructureSelection(query, plugin.managers.structure.hierarchy.current.structures[0].cell.obj!.data);
+        const bundle = Bundle.fromSelection(sel);
+        const params = [];
+
+        params.push({
+            bundle: bundle,
+            color: Color.fromHexString(color),
+            clear: false
+        });
+
+        for (const representation of representations) {
+            await plugin.build().to(representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
         }
     }
 }
