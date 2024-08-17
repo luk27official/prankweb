@@ -15,6 +15,7 @@ import { DockingTaskVisualizationBox } from "./visualization-box";
 import { DockingTaskRightPanel } from "./right-panel";
 import { StateObjectSelector } from "molstar/lib/mol-state";
 import { PocketData, PocketsViewType, PredictionData } from "../../custom-types";
+import { Color } from "molstar/lib/mol-util/color";
 
 let dockedMolecule: any; // to be able to access the docked molecule from here and avoid multiple fetches
 
@@ -114,16 +115,16 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
     const trajectory = await plugin.builders.structure.parseTrajectory(ligandData, "pdbqt");
     const model = await plugin.builders.structure.createModel(trajectory);
     const structure = await plugin.builders.structure.createStructure(model, { name: 'model', params: {} });
-    const preset = await plugin.builders.structure.representation.applyPreset(structure, 'polymer-and-ligand');
+    const representation = await plugin.builders.structure.representation.addRepresentation(structure, {
+        type: 'ball-and-stick',
+        color: 'uniform',
+        colorParams: { value: Color(0xff00ff) },
+    });
 
-    // TODO: have a look if there isn't a need to color other
-    // ligand types as well (carbohydrates)
-    console.log(preset?.components?.ligand);
-    console.log(preset?.representations?.ligand);
-    // right now, the coloring is done in the following method
-    await createLigandRepresentations(plugin, structure);
+    // load other ligands as well
+    await createLigandRepresentations(plugin, structure, "0xff00ff");
 
-    return [model, structure, preset];
+    return [model, structure, representation];
 }
 
 async function createMolstarViewer() {

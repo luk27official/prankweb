@@ -99,30 +99,20 @@ export async function createLigandRepresentations(plugin: PluginUIContext, struc
     for (const group of shownGroups) {
         const component = await plugin.builders.structure.tryCreateComponentStatic(structure, group);
         if (component) {
-            const r = await plugin.builders.structure.representation.addRepresentation(component, {
-                type: 'ball-and-stick',
-            });
+            const parameters = (color !== "0x") ? {
+                type: 'ball-and-stick' as const,
+            } : {
+                type: 'ball-and-stick' as const,
+                color: 'uniform' as const,
+                colorParams: { value: Color.fromHexString(color) },
+            };
+
+            const r = await plugin.builders.structure.representation.addRepresentation(component, parameters);
             representations.push(r);
         }
     }
 
-    // if a color has been provided (not the default value)
-    if (color !== "0x") {
-        const query = MS.struct.generator.all;
-        const sel = Script.getStructureSelection(query, plugin.managers.structure.hierarchy.current.structures[0].cell.obj!.data);
-        const bundle = Bundle.fromSelection(sel);
-        const params = [];
-
-        params.push({
-            bundle: bundle,
-            color: Color.fromHexString(color),
-            clear: false
-        });
-
-        for (const representation of representations) {
-            await plugin.build().to(representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-        }
-    }
+    await plugin.build().commit();
 }
 
 /** Method returning log_x(y) */
