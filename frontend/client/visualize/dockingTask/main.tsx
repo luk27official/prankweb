@@ -42,7 +42,7 @@ export function DockingTask(dp: DockingTaskProps) {
 
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
             // Download pdb/mmcif and create a model in Mol*.
-            const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 0.5).then(result => result);
+            const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 0.5, "0x0000ff").then(result => result);
             // Load the docked ligand into Mol*.
             const ligandData = await loadLigandIntoMolstar(plugin, dockedMolecule);
 
@@ -120,9 +120,6 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
         color: 'uniform',
         colorParams: { value: Color(0xff00ff) },
     });
-
-    // load other ligands as well
-    await createLigandRepresentations(plugin, structure, "0xff00ff");
 
     return [model, structure, representation];
 }

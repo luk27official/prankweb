@@ -30,7 +30,7 @@ let conservationNormalized: number[];
  * @param structureAlpha Alpha of the structure (0-1)
  * @returns An array containing the model and structure.
  */
-export async function loadStructureIntoMolstar(plugin: PluginUIContext, structureUrl: string, structureAlpha: number = 1) {
+export async function loadStructureIntoMolstar(plugin: PluginUIContext, structureUrl: string, structureAlpha: number = 1, ligandColor: `0x${string}` = "0x") {
     const data = await plugin.builders.data.download({
         url: Asset.Url(structureUrl),
         isBinary: false
@@ -86,7 +86,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
         });
     }
 
-    await createLigandRepresentations(plugin, structure);
+    await createLigandRepresentations(plugin, structure, ligandColor);
 
     return [model, structure];
 }
@@ -94,21 +94,22 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
 export async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector, color: `0x${string}` = "0x") {
     const shownGroups = ["water", "ion", "ligand", "nucleic", "lipid", "branched", "non-standard", "coarse"] as const;
 
-    const representations = [];
-
     for (const group of shownGroups) {
         const component = await plugin.builders.structure.tryCreateComponentStatic(structure, group);
+        console.log(color);
         if (component) {
-            const parameters = (color !== "0x") ? {
-                type: 'ball-and-stick' as const,
-            } : {
-                type: 'ball-and-stick' as const,
-                color: 'uniform' as const,
-                colorParams: { value: Color.fromHexString(color) },
-            };
-
-            const r = await plugin.builders.structure.representation.addRepresentation(component, parameters);
-            representations.push(r);
+            if (color !== "0x") {
+                await plugin.builders.structure.representation.addRepresentation(component, {
+                    type: 'ball-and-stick',
+                    color: 'uniform',
+                    colorParams: { value: Color.fromHexString(color) }
+                });
+            }
+            else {
+                await plugin.builders.structure.representation.addRepresentation(component, {
+                    type: 'ball-and-stick'
+                });
+            }
         }
     }
 
