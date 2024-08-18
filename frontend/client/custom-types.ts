@@ -250,7 +250,7 @@ export interface ServerTaskInfo { // info about the task returned from the serve
     id: string;
     created: string;
     lastChange: string;
-    status: string;
+    status: "queued" | "running" | "failed" | "successful";
     initialData: {
         hash: string;               //hash of the data
         pocket: string;             //pocket id
@@ -278,7 +278,7 @@ export interface ServerTask {
     params: string[];
     pocket: number;
     created: string;
-    status: string;
+    status: "queued" | "running" | "failed" | "successful";
     type: ServerTaskType;
     responseData: any;
 }

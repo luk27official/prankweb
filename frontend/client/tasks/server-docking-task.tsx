@@ -155,6 +155,8 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
         const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
         if (tasks.length === 0) return;
         if (tasks.every((task: ServerTaskLocalStorageData) => task.status === "successful" || task.status === "failed")) return;
+        // get the count of "queued" tasks
+        const queuedTasks = taskStatusJSON["tasks"].filter((t: ServerTaskInfo) => t.status === "queued").length;
         tasks.forEach(async (task: ServerTaskLocalStorageData, i: number) => {
             if (task.status === "successful" || task.status === "failed") return;
 
@@ -164,7 +166,7 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
             if (individualTask) {
                 if (individualTask.status !== task.status) {
                     //update the status
-                    tasks[i].status = individualTask.status;
+                    tasks[i].status = `${individualTask.status}`;
 
                     //download the computed data
                     if (individualTask.status === "successful") {
@@ -172,6 +174,8 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
                         const data = await fetch(`${apiEndpoint}/${hash}/public/result.json`)
                             .then(res => res.json()).catch(err => console.log(err));
                         tasks[i].responseData = data;
+                    } else if (individualTask.status === "queued") {
+                        tasks[i].status += ` (${queuedTasks} in queue)`;
                     }
 
                     //save the updated tasks
