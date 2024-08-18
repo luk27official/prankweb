@@ -1,10 +1,11 @@
 import React from "react";
 import { PocketData, PocketsViewType, PolymerViewType } from "../../custom-types";
-import { FormControl, FormHelperText, MenuItem, Select, Button, Slider } from "@mui/material";
+import { FormControl, FormHelperText, MenuItem, Select, Button, Slider, Tooltip } from "@mui/material";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket, setStructureTransparency } from "../../viewer/molstar-visualise";
 import "../app.css";
 import "../../viewer/components/visualization-tool-box.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket }: { plugin: PluginUIContext; changePocketsView: (pocketsView: PocketsViewType) => void; pocket: PocketData | undefined; }) {
     const [polymerView, setPolymerView] = React.useState<PolymerViewType>(PolymerViewType.Gaussian_Surface);
@@ -34,9 +35,16 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
         plugin.canvas3d?.requestCameraReset();
     };
 
+    const tooltipText = "Ligands that are shown in blue color are a part of the loaded structure. Ligands that are shown in violet color are the docked ligands.";
+
     return (
         <>
             <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "75vh" }}></div>
+            <div id="visualization-tooltip">
+                <Tooltip title={<span style={{ fontSize: "1.5em" }}>{tooltipText}</span>} placement="left-end">
+                    <i className="bi bi-info-circle" style={{ "display": "block", zIndex: "1", position: "absolute", left: "47.5%", top: "77.5vh" }}></i>
+                </Tooltip>
+            </div>
             <div className="visualization-toolbox-container" id="visualization-toolbox">
                 <div className="visualization-toolbox-row">
                     <div className="visualization-toolbox-option">

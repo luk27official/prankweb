@@ -35,9 +35,11 @@ export function DockingTask(dp: DockingTaskProps) {
             plugin.layout.events.updated.subscribe(() => {
                 const contentWrapper = document.getElementById('content-wrapper')!;
                 const visualizationToolbox = document.getElementById('visualization-toolbox')!;
+                const tooltip = document.getElementById('visualization-tooltip')!;
 
                 contentWrapper.style.display = plugin.layout.state.isExpanded ? "none" : "block";
                 visualizationToolbox.style.display = plugin.layout.state.isExpanded ? "none" : "block";
+                tooltip.style.display = plugin.layout.state.isExpanded ? "none" : "block";
             });
 
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
