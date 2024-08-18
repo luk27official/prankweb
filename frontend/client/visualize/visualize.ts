@@ -16,13 +16,6 @@ async function main() {
         return;
     }
 
-    if (taskHash === "custom") {
-        // TODO: handle custom task definition
-        // this means that the user may include the task parameters in the headers
-        render({ type: "unknown", data: "Custom task not yet implemented." });
-        return;
-    }
-
     const receivedData = await getData(type, id, database, taskHash, structureName);
     render({ type: type, data: receivedData });
 }
@@ -30,7 +23,7 @@ async function main() {
 async function getData(type: string, id: string, database: string, hash: string, structureName: string) {
     switch (type) {
         case "docking":
-            return await getDockingTaskContent(type, id, database, hash, structureName);
+            return await getDockingTaskContent(id, database, hash, structureName);
         default:
             return "Unknown type";
     }

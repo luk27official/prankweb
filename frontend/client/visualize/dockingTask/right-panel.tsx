@@ -32,7 +32,7 @@ function Row(props: { row: Model; setModel: (model: number) => void; currentMode
                         style={{
                             "display": "inline",
                             "padding": "0.25rem",
-                            "backgroundColor": currentModel === row.number ? "#007bff" : "transparent",
+                            "backgroundColor": currentModel === row.number ? "#007bff" : "transparent", // highlight the current model
                             "color": currentModel === row.number ? "#ffffff" : "#000000"
                         }}
                         title="Focus/highlight to this model."

@@ -17,7 +17,7 @@ import { StateObjectSelector } from "molstar/lib/mol-state";
 import { PocketData, PocketsViewType, PredictionData } from "../../custom-types";
 import { Color } from "molstar/lib/mol-util/color";
 
-let dockedMolecule: any; // to be able to access the docked molecule from here and avoid multiple fetches
+let dockedMoleculePDBQT: string | undefined; // to be able to access the docked molecule from here and avoid multiple fetches
 
 export function DockingTask(dp: DockingTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
@@ -47,7 +47,7 @@ export function DockingTask(dp: DockingTaskProps) {
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 1, "0x0000ff").then(result => result);
             setStructureTransparency(plugin, 0.5);
             // Load the docked ligand into Mol*.
-            const ligandData = await loadLigandIntoMolstar(plugin, dockedMolecule);
+            const ligandData = await loadLigandIntoMolstar(plugin, dockedMoleculePDBQT);
 
             // Add the pocket representations.
             // First, we have to download the prediction file.
@@ -158,7 +158,7 @@ async function createMolstarViewer() {
     return MolstarPlugin;
 }
 
-export async function getDockingTaskContent(type: string, id: string, database: string, hash: string, structureName: string): Promise<DockingTaskProps> {
+export async function getDockingTaskContent(id: string, database: string, hash: string, structureName: string): Promise<DockingTaskProps> {
     const apiEndpoint = getApiEndpoint(database, id, "docking");
     const response = await fetch(`${apiEndpoint}/${hash}/public/out_vina.pdbqt`).then(res => res.text()).catch(err => console.log(err));
 
@@ -166,7 +166,7 @@ export async function getDockingTaskContent(type: string, id: string, database: 
         return { content: "Error", hash: hash, id: id, database: database, structureName: structureName };
     }
 
-    dockedMolecule = response;
+    dockedMoleculePDBQT = response;
 
     return { content: response, hash: hash, id: id, database: database, structureName: structureName };
 }
