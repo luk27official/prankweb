@@ -156,7 +156,7 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
         if (tasks.length === 0) return;
         if (tasks.every((task: ServerTaskLocalStorageData) => task.status === "successful" || task.status === "failed")) return;
         // get the count of "queued" tasks
-        const queuedTasks = taskStatusJSON["tasks"].filter((t: ServerTaskInfo) => t.status === "queued").length;
+        const queuedTasks = taskStatusJSON["tasks"].filter((t: ServerTaskInfo) => t.status === "queued" || t.status === "running").length;
         tasks.forEach(async (task: ServerTaskLocalStorageData, i: number) => {
             if (task.status === "successful" || task.status === "failed") return;
 
