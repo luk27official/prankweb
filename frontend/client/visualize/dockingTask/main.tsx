@@ -16,6 +16,7 @@ import { DockingTaskRightPanel } from "./right-panel";
 import { StateObjectSelector } from "molstar/lib/mol-state";
 import { PocketData, PocketsViewType, PredictionData } from "../../custom-types";
 import { Color } from "molstar/lib/mol-util/color";
+import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/state";
 
 let dockedMoleculePDBQT: string | undefined; // to be able to access the docked molecule from here and avoid multiple fetches
 
@@ -24,10 +25,11 @@ export function DockingTask(dp: DockingTaskProps) {
     const [pdbqtModels, setPdbqtModels] = React.useState<Model[]>([]);
     const [pocketRank, setPocketRank] = React.useState<string>("");
     const [prediction, setPrediction] = React.useState<PredictionData | undefined>(undefined);
+    const [ligandRepresentations, setLigandRepresentations] = React.useState<StateObjectSelector[]>([]);
 
     // this is a hook that runs when the component is mounted
     useEffect(() => {
-        const loadPlugin = async () => {
+        const loadPlugin = async (parsedModels: Model[]) => {
             const plugin: PluginUIContext = await createMolstarViewer();
             setPlugin(plugin);
 
@@ -47,7 +49,8 @@ export function DockingTask(dp: DockingTaskProps) {
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 1, "0x0000ff").then(result => result);
             setStructureTransparency(plugin, 0.5);
             // Load the docked ligand into Mol*.
-            const ligandData = await loadLigandIntoMolstar(plugin, dockedMoleculePDBQT);
+            const ligandData = await loadLigandIntoMolstar(plugin, dockedMoleculePDBQT, parsedModels);
+            setLigandRepresentations(ligandData);
 
             // Add the pocket representations.
             // First, we have to download the prediction file.
@@ -82,11 +85,11 @@ export function DockingTask(dp: DockingTaskProps) {
                 showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Atoms_Color, idx, pocket.rank === pocketRank);
             });
         };
-        loadPlugin();
-
         // Parse the PDBQT content and store the models.
         const parsedModels = parsePdbqt(dp.content);
         setPdbqtModels(parsedModels);
+
+        loadPlugin(parsedModels);
     }, []);
 
     const changePocketsView = (pocketsView: PocketsViewType) => {
@@ -104,27 +107,38 @@ export function DockingTask(dp: DockingTaskProps) {
             <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} pocket={prediction?.pockets.find((p: PocketData) => p.rank === pocketRank)} />
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
-            <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} />
+            <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} ligandRepresentations={ligandRepresentations} />
         </div>
     </div>;
 }
 
-async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, dockedMolecule: any) {
+async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, dockedMolecule: any, pdbqtModels: Model[]) {
     if (dockedMolecule === undefined || plugin === undefined) {
-        return;
+        return [];
     }
 
+    const representations: StateObjectSelector[] = [];
     const ligandData = await plugin.builders.data.rawData({ data: dockedMolecule });
     const trajectory = await plugin.builders.structure.parseTrajectory(ligandData, "pdbqt");
-    const model = await plugin.builders.structure.createModel(trajectory);
-    const structure = await plugin.builders.structure.createStructure(model, { name: 'model', params: {} });
-    const representation = await plugin.builders.structure.representation.addRepresentation(structure, {
-        type: 'ball-and-stick',
-        color: 'uniform',
-        colorParams: { value: Color(0xff00ff) },
+    // create a model for each model in the pdbqt file
+    pdbqtModels.forEach(async (model: Model, idx: number) => {
+        const mdl = await plugin.builders.structure.createModel(trajectory, { modelIndex: idx });
+        const structure = await plugin.builders.structure.createStructure(mdl, { name: 'model', params: {} });
+        const representation = await plugin.builders.structure.representation.addRepresentation(structure, {
+            type: 'ball-and-stick',
+            color: 'uniform',
+            colorParams: { value: Color(0xff00ff) },
+        });
+
+        // hide the ligands, keep just the first model visible
+        if (idx > 0) {
+            setSubtreeVisibility(plugin!.state.data, representation.ref, true);
+        }
+
+        representations.push(representation);
     });
 
-    return [model, structure, representation];
+    return representations;
 }
 
 async function createMolstarViewer() {

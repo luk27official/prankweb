@@ -9,15 +9,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { PluginCommands } from "molstar/lib/mol-plugin/commands";
-import { UpdateTrajectory } from "molstar/lib/mol-plugin-state/actions/structure";
-import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
-import { StateTransformer } from "molstar/lib/mol-state";
-import { ModelFromTrajectory } from "molstar/lib/mol-plugin-state/transforms/model";
+import { StateObjectSelector } from "molstar/lib/mol-state";
+import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/state";
 
-function Row(props: { row: Model; setModel: (model: number) => void; currentModel: number; }) {
-    const { row, setModel, currentModel } = props;
+function Row(props: { row: Model; models: number[]; handleClick: (models: number) => void; }) {
+    const { row, handleClick, models } = props;
     const [open, setOpen] = React.useState(false);
+
+    const rowVisible = models.find(e => e === row.number) !== undefined;
 
     return (
         <React.Fragment>
@@ -32,14 +31,15 @@ function Row(props: { row: Model; setModel: (model: number) => void; currentMode
                         style={{
                             "display": "inline",
                             "padding": "0.25rem",
-                            "backgroundColor": currentModel === row.number ? "#007bff" : "transparent", // highlight the current model
-                            "color": currentModel === row.number ? "#ffffff" : "#000000"
+                            "backgroundColor": rowVisible ? "#007bff" : "transparent", // highlight the current model
+                            "color": rowVisible ? "#ffffff" : "#000000"
                         }}
                         title="Focus/highlight to this model."
                         className="btn btn-outline-secondary btnIcon"
-                        onClick={() => setModel(row.number)}
+                        onClick={() => handleClick(row.number)}
                     >
-                        <i className="bi bi-search" style={{ "display": "block", "fontSize": "small" }}></i>
+                        {rowVisible ? <i className="bi bi-check" style={{ "display": "block", "fontSize": "small" }}></i>
+                            : <i className="bi bi-x" style={{ "display": "block", "fontSize": "small" }}></i>}
                     </button>
                 </TableCell>
                 <TableCell align="center">{row.number}</TableCell>
@@ -65,7 +65,7 @@ function Row(props: { row: Model; setModel: (model: number) => void; currentMode
     );
 }
 
-export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels: Model[], dp: DockingTaskProps, plugin: PluginUIContext; }) {
+export function DockingTaskRightPanel({ pdbqtModels, dp, plugin, ligandRepresentations }: { pdbqtModels: Model[], dp: DockingTaskProps, plugin: PluginUIContext, ligandRepresentations: StateObjectSelector[]; }) {
     const handleDownload = () => {
         const element = document.createElement("a");
         const file = new Blob([dp.content], { type: 'text/plain' });
@@ -75,8 +75,15 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
         element.click();
     };
 
-    const [model, setModel] = React.useState(1);
-    const updating = React.useRef(false);
+    const [models, setModels] = React.useState<number[]>([1]);
+
+    const handleClick = (model: number) => {
+        if (models.find(e => e === model) === undefined) {
+            setModels([...models, model]);
+        } else {
+            setModels(models.filter(e => e !== model));
+        }
+    };
 
     useEffect(() => {
         const updateModel = async () => {
@@ -84,53 +91,14 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
                 return;
             }
 
-            updating.current = true;
-
-            await PluginCommands.State.ApplyAction(plugin, {
-                state: plugin.state.data,
-                action: UpdateTrajectory.create({ action: 'reset' })
-            });
-
-            updating.current = false;
-
-            await PluginCommands.State.ApplyAction(plugin, {
-                state: plugin.state.data,
-                action: UpdateTrajectory.create({ action: 'advance', by: model - 1 })
+            // for each model, if the index is in the models array, show it, otherwise hide it
+            ligandRepresentations.forEach((representation, idx) => {
+                setSubtreeVisibility(plugin.state.data, representation.ref, models.find(e => e === idx + 1) === undefined);
             });
         };
 
-        if (updating.current) {
-            return;
-        }
-
         updateModel();
-    }, [model]);
-
-    useEffect(() => {
-        if (plugin === undefined) {
-            return;
-        }
-
-        // update the model in React when the user changes the model in Mol*, not through our UI
-        plugin.state.data.events.changed.subscribe(() => {
-            if (updating.current) {
-                return;
-            }
-
-            const state = plugin.state.data;
-            const models = state.selectQ(q => q.ofTransformer(StateTransforms.Model.ModelFromTrajectory));
-
-            if (models.length < 2) {
-                return;
-            }
-
-            const ligandModel = models[1];
-            const idx = (ligandModel.transform.params! as StateTransformer.Params<ModelFromTrajectory>).modelIndex + 1;
-
-            setModel(idx);
-        });
-
-    }, [plugin]);
+    }, [models]);
 
     const tableLabels: { name: string, tooltip: string, align: "left" | "center" | "right"; }[] = [
         {
@@ -176,7 +144,7 @@ export function DockingTaskRightPanel({ pdbqtModels, dp, plugin }: { pdbqtModels
                     </TableHead>
                     <TableBody>
                         {pdbqtModels.map((row) => (
-                            <Row key={row.number + row.vinaResult.join(", ")} row={row} setModel={setModel} currentModel={model} />
+                            <Row key={row.number + row.vinaResult.join(", ")} row={row} handleClick={handleClick} models={models} />
                         ))}
                     </TableBody>
                 </Table>
