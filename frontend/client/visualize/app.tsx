@@ -2,8 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 import "./app.css";
-import { DockingTask } from "./dockingTask/main";
-import { DockingTaskProps } from "./dockingTask/types";
+import { DockingTask } from "./docking/main";
+import { DockingTaskProps } from "./docking/types";
 
 type Visualization<T> = {
     type: string;

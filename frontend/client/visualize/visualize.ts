@@ -1,7 +1,7 @@
 import "../bootstrap.scss";
 import "bootstrap";
 import { render } from "./app";
-import { getDockingTaskContent } from "./dockingTask/main";
+import { getDockingTaskContent } from "./docking/main";
 
 async function main() {
     const queryParameters = new URLSearchParams(window.location.search);
