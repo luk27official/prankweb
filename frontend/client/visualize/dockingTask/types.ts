@@ -1,5 +1,5 @@
 export interface DockingTaskProps {
-    content: string;
+    ligandPDBQT: string;
     database: string;
     id: string;
     hash: string;

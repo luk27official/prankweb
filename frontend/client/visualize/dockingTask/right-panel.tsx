@@ -68,7 +68,7 @@ function Row(props: { row: Model; models: number[]; handleClick: (models: number
 export function DockingTaskRightPanel({ pdbqtModels, dp, plugin, ligandRepresentations }: { pdbqtModels: Model[], dp: DockingTaskProps, plugin: PluginUIContext, ligandRepresentations: StateObjectSelector[]; }) {
     const handleDownload = () => {
         const element = document.createElement("a");
-        const file = new Blob([dp.content], { type: 'text/plain' });
+        const file = new Blob([dp.ligandPDBQT], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
         element.download = `result-${new Date().toISOString()}.pdbqt`;
         document.body.appendChild(element); // Required for this to work in Firefox

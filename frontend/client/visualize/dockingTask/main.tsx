@@ -18,8 +18,6 @@ import { PocketData, PocketsViewType, PredictionData } from "../../custom-types"
 import { Color } from "molstar/lib/mol-util/color";
 import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/state";
 
-let dockedMoleculePDBQT: string | undefined; // to be able to access the docked molecule from here and avoid multiple fetches
-
 export function DockingTask(dp: DockingTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
     const [pdbqtModels, setPdbqtModels] = React.useState<Model[]>([]);
@@ -49,7 +47,7 @@ export function DockingTask(dp: DockingTaskProps) {
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 1, "0x0000ff").then(result => result);
             setStructureTransparency(plugin, 0.5);
             // Load the docked ligand into Mol*.
-            const ligandData = await loadLigandIntoMolstar(plugin, dockedMoleculePDBQT, parsedModels);
+            const ligandData = await loadLigandIntoMolstar(plugin, dp.ligandPDBQT, parsedModels);
             setLigandRepresentations(ligandData);
 
             // Add the pocket representations.
@@ -86,7 +84,10 @@ export function DockingTask(dp: DockingTaskProps) {
             });
         };
         // Parse the PDBQT content and store the models.
-        const parsedModels = parsePdbqt(dp.content);
+        if (dp.ligandPDBQT === "Error") {
+            return;
+        }
+        const parsedModels = parsePdbqt(dp.ligandPDBQT);
         setPdbqtModels(parsedModels);
 
         loadPlugin(parsedModels);
@@ -101,6 +102,13 @@ export function DockingTask(dp: DockingTaskProps) {
             showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
         });
     };
+
+    if (dp.ligandPDBQT === "Error") {
+        return <div>
+            <h1>Error</h1>
+            <p>There was an error while fetching the ligand data. Try again later.</p>
+        </div>;
+    }
 
     return <div style={{ display: "flex" }}>
         <div style={{ width: "50%", margin: "5px" }}>
@@ -177,10 +185,8 @@ export async function getDockingTaskContent(id: string, database: string, hash: 
     const response = await fetch(`${apiEndpoint}/${hash}/public/out_vina.pdbqt`).then(res => res.text()).catch(err => console.log(err));
 
     if (response === undefined) {
-        return { content: "Error", hash: hash, id: id, database: database, structureName: structureName };
+        return { ligandPDBQT: "Error", hash: hash, id: id, database: database, structureName: structureName };
     }
 
-    dockedMoleculePDBQT = response;
-
-    return { content: response, hash: hash, id: id, database: database, structureName: structureName };
+    return { ligandPDBQT: response, hash: hash, id: id, database: database, structureName: structureName };
 }
