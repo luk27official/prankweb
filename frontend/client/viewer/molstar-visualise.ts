@@ -28,6 +28,7 @@ let conservationNormalized: number[];
  * @param plugin Mol* plugin
  * @param structureUrl URL of the structure to be predicted
  * @param structureAlpha Alpha of the structure (0-1)
+ * @param ligandColor Color of the ligands
  * @returns An array containing the model and structure.
  */
 export async function loadStructureIntoMolstar(plugin: PluginUIContext, structureUrl: string, structureAlpha: number = 1, ligandColor: `0x${string}` = "0x") {
@@ -101,7 +102,7 @@ export async function createLigandRepresentations(plugin: PluginUIContext, struc
         const component = await plugin.builders.structure.tryCreateComponentStatic(structure, group);
         console.log(color);
         if (component) {
-            if (color !== "0x") {
+            if (color !== "0x" && group !== "water") {
                 await plugin.builders.structure.representation.addRepresentation(component, {
                     type: 'ball-and-stick',
                     color: 'uniform',
