@@ -597,12 +597,13 @@ async function overPaintPocketsWithConservation(plugin: PluginUIContext, predict
  * @param groupName Group name (in this case "Pockets")
  * @param prediction Prediction data
  * @param alpha Alpha for the pocket
+ * @param createOverpaint Whether to create representations for overpaint
  */
-export async function createPocketsGroupFromJson(plugin: PluginUIContext, structure: StateObjectSelector, groupName: string, prediction: PredictionData, alpha: number = 1) {
+export async function createPocketsGroupFromJson(plugin: PluginUIContext, structure: StateObjectSelector, groupName: string, prediction: PredictionData, alpha: number = 1, createOverpaint: boolean = true) {
     const builder = plugin.state.data.build();
     const group = builder.to(structure).apply(StateTransforms.Misc.CreateGroup, { label: groupName }, { ref: groupName });
     prediction.pockets.map((pocket, i) => {
-        createPocketFromJson(plugin, structure, pocket, `Pocket ${i + 1}`, group, alpha);
+        createPocketFromJson(plugin, structure, pocket, `Pocket ${i + 1}`, group, alpha, createOverpaint);
     });
     await builder.commit();
 }
@@ -616,9 +617,10 @@ export async function createPocketsGroupFromJson(plugin: PluginUIContext, struct
  * @param groupName Name of the group to which the pocket will be assigned
  * @param group Group to which the pocket will be assigned (from createPocketsGroupFromJson())
  * @param alpha Alpha of the pocket (0-1)
+ * @param createOverpaint Whether to create representations for overpaint
  * @returns void
  */
-export async function createPocketFromJson(plugin: PluginUIContext, structure: StateObjectSelector, pocket: PocketData, groupName: string, group: any, alpha: number = 1) { //group should not be any but i cannot figure out the right type
+export async function createPocketFromJson(plugin: PluginUIContext, structure: StateObjectSelector, pocket: PocketData, groupName: string, group: any, alpha: number = 1, createOverpaint: boolean = true) { //group should not be any but i cannot figure out the right type
     const group2 = group.apply(StateTransforms.Misc.CreateGroup, { label: groupName }, { ref: groupName }, { selectionTags: groupName });
 
     const atomsExpression = MS.struct.generator.atomGroups({
@@ -639,19 +641,21 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
     //moreover, the function would potentially depend on internal Mol* implementation
 
     //the first one selects the whole residues and does not color them -> for overpaints
-    const repr_surface: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
-        type: 'gaussian-surface',
-        typeParams: { alpha: alpha },
-        color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
-    }));
+    if (createOverpaint) {
+        const repr_surface: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
+            type: 'gaussian-surface',
+            typeParams: { alpha: alpha },
+            color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
+        }));
 
-    pocketRepresentations.push({
-        pocketId: pocket.name,
-        type: PocketsViewType.Surface_Atoms_Color,
-        representation: repr_surface,
-        coloredPocket: false,
-        selectionType: PocketSelectionType.Residues,
-    });
+        pocketRepresentations.push({
+            pocketId: pocket.name,
+            type: PocketsViewType.Surface_Atoms_Color,
+            representation: repr_surface,
+            coloredPocket: false,
+            selectionType: PocketSelectionType.Residues,
+        });
+    }
 
     //the second one selects the atoms and colors them
     const repr_surface2: StateObjectSelector = atomsSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -687,27 +691,29 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
 
     //create the ball and stick representations
     //the first one selects the whole residues and does not color them -> again for overpaints
-    const repr_ball_stick: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
-        type: 'ball-and-stick',
-        typeParams: { alpha: alpha },
-        color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
-        size: 'physical', sizeParams: { scale: 1.10 }
-    }));
+    if (createOverpaint) {
+        const repr_ball_stick: StateObjectSelector = wholeResiduesSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
+            type: 'ball-and-stick',
+            typeParams: { alpha: alpha },
+            color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
+            size: 'physical', sizeParams: { scale: 1.10 }
+        }));
 
-    pocketRepresentations.push({
-        pocketId: pocket.name,
-        type: PocketsViewType.Ball_Stick_Residues_Color,
-        representation: repr_ball_stick,
-        coloredPocket: false,
-        selectionType: PocketSelectionType.Residues,
-    });
+        pocketRepresentations.push({
+            pocketId: pocket.name,
+            type: PocketsViewType.Ball_Stick_Residues_Color,
+            representation: repr_ball_stick,
+            coloredPocket: false,
+            selectionType: PocketSelectionType.Residues,
+        });
+    }
 
     //the second one selects the atoms and colors them
     const repr_ball_stick2: StateObjectSelector = atomsSelection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
         type: 'ball-and-stick',
         typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(color) },
-        size: 'physical', sizeParams: { scale: 1.50 }
+        size: 'physical', sizeParams: { scale: 1.10 }
     }));
 
     pocketRepresentations.push({
@@ -723,7 +729,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: 'ball-and-stick',
         typeParams: { alpha: alpha },
         color: 'uniform', colorParams: { value: Color(color) },
-        size: 'physical', sizeParams: { scale: 1.50 }
+        size: 'physical', sizeParams: { scale: createOverpaint ? 1.50 : 1.10 }
     }));
 
     pocketRepresentations.push({

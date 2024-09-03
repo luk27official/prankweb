@@ -75,8 +75,8 @@ export function DockingTask(dp: DockingTaskProps) {
 
             const pocket = prediction.pockets.find((pocket: PocketData) => pocket.rank === pocketRank);
             if (!pocket) return;
-            pocket.color = "d3d3d3";
-            await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 1);
+            pocket.color = "c7c7c7";
+            await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 1, false);
             await builder.commit();
             await createBoundingBoxForPocket(plugin, pocket);
 
