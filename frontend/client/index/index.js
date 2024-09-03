@@ -172,7 +172,9 @@ class View {
 
   invalidatePdbChain() {
     this.pdbChainsLabel.innerText = "Please insert valid PDB code first.";
+    this.pdbChainsLabel.className += " alert alert-warning";
     this.pdbChainsContainer.innerHTML = "";
+    this.pdbChainsContainer.style.display = "none";
   }
 
   beginPdbChainLoading() {
@@ -182,7 +184,9 @@ class View {
 
   endPdbChainLoading(chains, asChecked) {
     this.pdbChainsLabel.innerText = "Chains:";
+    this.pdbChainsLabel.className = "form-check-inline";
     this.pdbChainsContainer.innerHTML = "";
+    this.pdbChainsContainer.style.display = "inline-block";
     chains.forEach(chain => this.pdbChainsContainer.appendChild(
       this.createCheckBoxForChain(chain, asChecked)));
   }
