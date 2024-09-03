@@ -127,7 +127,7 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
                         onChange={(event, value) => {
                             setStructureTransparency(plugin, 1 - (value as number / 100));
                         }}
-                    ></Slider>
+                    />
                 </div>
             </div>
         </>
