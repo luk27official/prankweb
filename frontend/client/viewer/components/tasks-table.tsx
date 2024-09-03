@@ -213,7 +213,7 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                     {task.type === ClientTaskType.Volume && " Å³"}
                                 </TableCell>
                                 <TableCell>
-                                    <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={removeClientTaskFromLocalStorage(task)}>
+                                    <button type="button" title="Delete task" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={removeClientTaskFromLocalStorage(task)}>
                                         <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
                                     </button>
                                 </TableCell>
@@ -230,12 +230,12 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                 <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
                                 <TableCell>{task.status === "successful" ? <span onClick={() => handleResultClick(task)} style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}>successful</span> : task.status}</TableCell>
                                 <TableCell>
-                                    <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={removeServerTaskFromLocalStorage(task)}>
+                                    <button type="button" className="btn btn-outline-secondary btnIcon" title="Delete task" style={{ "padding": "0.25rem" }} onClick={removeServerTaskFromLocalStorage(task)}>
                                         <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
                                     </button>
                                     &nbsp;
                                     {task.status === "successful" &&
-                                        <button type="button" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
+                                        <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
                                             <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
                                         </button>
                                     }
