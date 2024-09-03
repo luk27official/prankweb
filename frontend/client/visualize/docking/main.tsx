@@ -5,7 +5,7 @@ import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { createBoundingBoxForPocket, createPocketsGroupFromJson, loadStructureIntoMolstar, setStructureTransparency, showPocketInCurrentRepresentation } from "../../viewer/molstar-visualise";
+import { createBoundingBoxForPocket, createPocketsGroupFromJson, loadStructureIntoMolstar, setStructureTransparency, showPocketInCurrentRepresentation, updatePolymerView } from "../../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../../prankweb-api";
 import { Model, DockingTaskProps } from "./types";
@@ -14,7 +14,7 @@ import parsePdbqt from "./pdbqt-parser";
 import { DockingTaskVisualizationBox } from "./visualization-box";
 import { DockingTaskRightPanel } from "./right-panel";
 import { StateObjectSelector } from "molstar/lib/mol-state";
-import { PocketData, PocketsViewType, PredictionData } from "../../custom-types";
+import { PocketData, PocketsViewType, PolymerViewType, PredictionData } from "../../custom-types";
 import { Color } from "molstar/lib/mol-util/color";
 import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/state";
 
@@ -45,6 +45,7 @@ export function DockingTask(dp: DockingTaskProps) {
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
             // Download pdb/mmcif and create a model in Mol*.
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 1, "0x0000ff").then(result => result);
+            updatePolymerView(PolymerViewType.Cartoon, plugin, false);
             setStructureTransparency(plugin, 0.5);
             // Load the docked ligand into Mol*.
             const ligandData = await loadLigandIntoMolstar(plugin, dp.ligandPDBQT, parsedModels);
@@ -80,7 +81,7 @@ export function DockingTask(dp: DockingTaskProps) {
             await createBoundingBoxForPocket(plugin, pocket);
 
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
-                showPocketInCurrentRepresentation(plugin, PocketsViewType.Surface_Atoms_Color, idx, pocket.rank === pocketRank);
+                showPocketInCurrentRepresentation(plugin, PocketsViewType.Ball_Stick_Residues_Color, idx, pocket.rank === pocketRank);
             });
         };
         // Parse the PDBQT content and store the models.

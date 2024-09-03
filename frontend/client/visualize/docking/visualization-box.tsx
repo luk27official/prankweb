@@ -8,8 +8,8 @@ import "../../viewer/components/visualization-tool-box.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket }: { plugin: PluginUIContext; changePocketsView: (pocketsView: PocketsViewType) => void; pocket: PocketData | undefined; }) {
-    const [polymerView, setPolymerView] = React.useState<PolymerViewType>(PolymerViewType.Gaussian_Surface);
-    const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Surface_Atoms_Color);
+    const [polymerView, setPolymerView] = React.useState<PolymerViewType>(PolymerViewType.Cartoon);
+    const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Ball_Stick_Residues_Color);
 
     const changePolymerView = (polymerView: PolymerViewType) => {
         setPolymerView(polymerView);
