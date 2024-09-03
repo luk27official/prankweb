@@ -16,6 +16,7 @@ import { ClientTaskLocalStorageData, ServerTaskLocalStorageData, ServerTaskTypeD
 import { dockingHash, downloadDockingResult, pollForDockingTask } from "../../tasks/server-docking-task";
 import { Order, getComparator, isInstanceOfClientTaskLocalStorageData, isInstanceOfServerTaskLocalStorageData } from "./tools";
 import { PredictionInfo } from "../../prankweb-api";
+import ConfirmDialog from "./confirm-dialog";
 
 interface HeadCell {
     id: keyof ClientTaskLocalStorageData | keyof ServerTaskLocalStorageData | null;
@@ -140,6 +141,9 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
     const [orderBy, setOrderBy] = React.useState<keyof ClientTaskLocalStorageData | keyof ServerTaskLocalStorageData>('name');
     const [numRenders, setRender] = React.useState<number>(0);
 
+    const [openConfirmDialogServerTasks, setOpenConfirmDialogServerTasks] = React.useState<boolean>(false);
+    const [serverTaskToDelete, setServerTaskToDelete] = React.useState<ServerTaskLocalStorageData | null>(null);
+
     const handleRequestSort = (
         event: React.MouseEvent<unknown>,
         property: keyof ClientTaskLocalStorageData | keyof ServerTaskLocalStorageData,
@@ -192,60 +196,69 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         window.open(`./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}&structureName=${props.predictionInfo.metadata.structureName}`, "_blank")?.focus();
     };
 
-    return (
-        <Table size="small">
-            <EnhancedTableHead
-                order={order}
-                orderBy={orderBy}
-                onRequestSort={handleRequestSort}
-            />
-            <TableBody>
-                {visibleRows.map((task: ClientTaskLocalStorageData | ServerTaskLocalStorageData, i: number) => {
-                    if (isInstanceOfClientTaskLocalStorageData(task)) {
-                        return (
-                            <TableRow key={i + "_client"}>
-                                {props.pocket === null && <TableCell>{task.pocket}</TableCell>}
-                                <TableCell>{ClientTaskTypeDescriptors[task.type]}</TableCell>
-                                <TableCell>{"-"}</TableCell>
-                                <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
-                                <TableCell>
-                                    {(!isNaN(task.data)) ? task.data.toFixed(1) : task.data}
-                                    {task.type === ClientTaskType.Volume && " Å³"}
-                                </TableCell>
-                                <TableCell>
-                                    <button type="button" title="Delete task" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={removeClientTaskFromLocalStorage(task)}>
-                                        <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
-                                    </button>
-                                </TableCell>
-                            </TableRow>
-                        );
-                    }
+    const handleServerTaskDeleteRequest = (task: ServerTaskLocalStorageData) => {
+        if (task === null) return;
+        setServerTaskToDelete(task);
+        setOpenConfirmDialogServerTasks(true);
+    };
 
-                    if (isInstanceOfServerTaskLocalStorageData(task)) {
-                        return (
-                            <TableRow key={i + "_server"}>
-                                {props.pocket === null && <TableCell>{task.pocket}</TableCell>}
-                                <TableCell>{ServerTaskTypeDescriptors[task.type]}</TableCell>
-                                <TableCell>{task.name}</TableCell>
-                                <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
-                                <TableCell>{task.status === "successful" ? <span onClick={() => handleResultClick(task)} style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}>successful</span> : task.status}</TableCell>
-                                <TableCell>
-                                    <button type="button" className="btn btn-outline-secondary btnIcon" title="Delete task" style={{ "padding": "0.25rem" }} onClick={removeServerTaskFromLocalStorage(task)}>
-                                        <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
-                                    </button>
-                                    &nbsp;
-                                    {task.status === "successful" &&
-                                        <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
-                                            <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
+    return (
+        <>
+            {openConfirmDialogServerTasks && <ConfirmDialog setOpenDialog={setOpenConfirmDialogServerTasks} callback={removeServerTaskFromLocalStorage(serverTaskToDelete!)} task={serverTaskToDelete!} />}
+            <Table size="small">
+                <EnhancedTableHead
+                    order={order}
+                    orderBy={orderBy}
+                    onRequestSort={handleRequestSort}
+                />
+                <TableBody>
+                    {visibleRows.map((task: ClientTaskLocalStorageData | ServerTaskLocalStorageData, i: number) => {
+                        if (isInstanceOfClientTaskLocalStorageData(task)) {
+                            return (
+                                <TableRow key={i + "_client"}>
+                                    {props.pocket === null && <TableCell>{task.pocket}</TableCell>}
+                                    <TableCell>{ClientTaskTypeDescriptors[task.type]}</TableCell>
+                                    <TableCell>{"-"}</TableCell>
+                                    <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
+                                    <TableCell>
+                                        {(!isNaN(task.data)) ? task.data.toFixed(1) : task.data}
+                                        {task.type === ClientTaskType.Volume && " Å³"}
+                                    </TableCell>
+                                    <TableCell>
+                                        <button type="button" title="Delete task" className="btn btn-outline-secondary btnIcon" style={{ "padding": "0.25rem" }} onClick={removeClientTaskFromLocalStorage(task)}>
+                                            <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
                                         </button>
-                                    }
-                                </TableCell>
-                            </TableRow>
-                        );
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        }
+
+                        if (isInstanceOfServerTaskLocalStorageData(task)) {
+                            return (
+                                <TableRow key={i + "_server"}>
+                                    {props.pocket === null && <TableCell>{task.pocket}</TableCell>}
+                                    <TableCell>{ServerTaskTypeDescriptors[task.type]}</TableCell>
+                                    <TableCell>{task.name}</TableCell>
+                                    <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
+                                    <TableCell>{task.status === "successful" ? <span onClick={() => handleResultClick(task)} style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}>successful</span> : task.status}</TableCell>
+                                    <TableCell>
+                                        <button type="button" className="btn btn-outline-secondary btnIcon" title="Delete task" style={{ "padding": "0.25rem" }} onClick={() => handleServerTaskDeleteRequest(task)}>
+                                            <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
+                                        </button>
+                                        &nbsp;
+                                        {task.status === "successful" &&
+                                            <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
+                                                <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
+                                            </button>
+                                        }
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        }
+                    })
                     }
-                })
-                }
-            </TableBody>
-        </Table>
+                </TableBody>
+            </Table>
+        </>
     );
 };
