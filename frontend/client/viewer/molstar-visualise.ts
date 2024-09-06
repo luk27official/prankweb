@@ -1023,25 +1023,46 @@ export function focusOnPocket(plugin: PluginUIContext, pocket: PocketData) {
  * Create a bounding box for the pocket in all representations
  * @param plugin Mol* plugin
  * @param pocket Pocket data
- * @returns void
+ * @returns References to the bounding boxes
  */
 export async function createBoundingBoxForPocket(plugin: PluginUIContext, pocket: PocketData) {
-    const data = plugin.managers.structure.hierarchy.current.structures[0]?.cell.obj?.data;
-    if (!data) return;
-
     const builder = plugin.state.data.build();
-    const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name
-        && (e.selectionType === PocketSelectionType.Residues || e.type === PocketsViewType.Ball_Stick_Atoms_Color)
-        // for the ball and stick representation we need to select the atoms (the bounding box is slightly smaller)
-    );
+    const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
 
+    const refs = [];
     for (const element of pocketReprs) {
-        builder.to(element.representation).apply(StateTransforms.Representation.StructureBoundingBox3D, {
+        const r = builder.to(element.representation).apply(StateTransforms.Representation.StructureBoundingBox3D, {
             color: Color(0x000000),
         });
+        refs.push(r.ref);
     }
 
     await builder.commit();
+
+    return refs;
+}
+
+/**
+ * Remove bounding box for the pocket in all representations
+ * @param plugin Mol* plugin
+ * @param refs References to the bounding boxes (strings returned from createBoundingBoxForPocket())
+ * @param pocket Pocket data
+ * @returns Empty array
+ */
+export async function removeBoundingBoxForPocket(plugin: PluginUIContext, refs: string[], pocket: PocketData) {
+    const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
+
+    const builder = plugin.state.data.build();
+
+    for (const element of pocketReprs) {
+        for (const ref of refs) {
+            builder.to(element.representation).delete(ref);
+        }
+    }
+
+    await builder.commit();
+
+    return [];
 }
 
 //cc: https://github.com/scheuerv/molart/

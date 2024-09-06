@@ -4,7 +4,7 @@ import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
 import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { createBoundingBoxForPocket, createPocketsGroupFromJson, loadStructureIntoMolstar, setStructureTransparency, showPocketInCurrentRepresentation, updatePolymerView } from "../../viewer/molstar-visualise";
+import { createBoundingBoxForPocket, createPocketsGroupFromJson, loadStructureIntoMolstar, removeBoundingBoxForPocket, setStructureTransparency, showPocketInCurrentRepresentation, updatePolymerView } from "../../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { getApiEndpoint } from "../../prankweb-api";
 import { Model, DockingTaskProps } from "./types";
@@ -20,9 +20,12 @@ import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/sta
 export function DockingTask(dp: DockingTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
     const [pdbqtModels, setPdbqtModels] = React.useState<Model[]>([]);
+    const [pocket, setPocket] = React.useState<PocketData | undefined>(undefined);
     const [pocketRank, setPocketRank] = React.useState<string>("");
     const [prediction, setPrediction] = React.useState<PredictionData | undefined>(undefined);
     const [ligandRepresentations, setLigandRepresentations] = React.useState<StateObjectSelector[]>([]);
+    const [boundingBoxRefs, setBoundingBoxRefs] = React.useState<string[]>([]);
+    const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Ball_Stick_Residues_Color);
 
     // this is a hook that runs when the component is mounted
     useEffect(() => {
@@ -75,12 +78,14 @@ export function DockingTask(dp: DockingTaskProps) {
             const pocket = prediction.pockets.find((pocket: PocketData) => pocket.rank === pocketRank);
             if (!pocket) return;
             pocket.color = "c7c7c7";
+            setPocket(pocket);
             await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 1, false);
             await builder.commit();
-            await createBoundingBoxForPocket(plugin, pocket);
+            const bbRefs: string[] = await createBoundingBoxForPocket(plugin, pocket);
+            setBoundingBoxRefs(bbRefs);
 
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
-                showPocketInCurrentRepresentation(plugin, PocketsViewType.Ball_Stick_Residues_Color, idx, pocket.rank === pocketRank);
+                showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
             });
         };
         // Parse the PDBQT content and store the models.
@@ -93,6 +98,26 @@ export function DockingTask(dp: DockingTaskProps) {
         loadPlugin(parsedModels);
     }, []);
 
+    const changeBoundingBoxRefs = async () => {
+        if (plugin === undefined || pocket === undefined || prediction === undefined) {
+            return;
+        }
+
+        if (boundingBoxRefs.length === 0) {
+            // if there are no bounding boxes, create them
+            const bbRefs: string[] = await createBoundingBoxForPocket(plugin, pocket!);
+            prediction.pockets.forEach((pocket: PocketData, idx: number) => {
+                showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
+            });
+            setBoundingBoxRefs(bbRefs);
+            return;
+        }
+
+        // else delete them
+        removeBoundingBoxForPocket(plugin, boundingBoxRefs, pocket!);
+        setBoundingBoxRefs([]);
+    };
+
     const changePocketsView = (pocketsView: PocketsViewType) => {
         if (plugin === undefined || prediction === undefined) {
             return;
@@ -101,6 +126,8 @@ export function DockingTask(dp: DockingTaskProps) {
         prediction.pockets.forEach((pocket: PocketData, idx: number) => {
             showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
         });
+
+        setPocketsView(pocketsView);
     };
 
     if (dp.ligandPDBQT === "Error") {
@@ -112,7 +139,8 @@ export function DockingTask(dp: DockingTaskProps) {
 
     return <div style={{ display: "flex" }}>
         <div style={{ width: "50%", margin: "5px" }}>
-            <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} pocket={prediction?.pockets.find((p: PocketData) => p.rank === pocketRank)} />
+            <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} pocket={prediction?.pockets.find((p: PocketData) => p.rank === pocketRank)}
+                changeBoundingBoxRefs={changeBoundingBoxRefs} />
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
             <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} ligandRepresentations={ligandRepresentations} />

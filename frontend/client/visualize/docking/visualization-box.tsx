@@ -6,7 +6,12 @@ import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket, setStru
 import "../../viewer/components/visualization-tool-box.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket }: { plugin: PluginUIContext; changePocketsView: (pocketsView: PocketsViewType) => void; pocket: PocketData | undefined; }) {
+export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket, changeBoundingBoxRefs }: {
+    plugin: PluginUIContext;
+    changePocketsView: (pocketsView: PocketsViewType) => void;
+    pocket: PocketData | undefined;
+    changeBoundingBoxRefs: () => void;
+}) {
     const [polymerView, setPolymerView] = React.useState<PolymerViewType>(PolymerViewType.Cartoon);
     const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Ball_Stick_Residues_Color);
 
@@ -18,6 +23,10 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
     const changePocketsViewLocal = (pocketsView: PocketsViewType) => {
         setPocketsView(pocketsView);
         changePocketsView(pocketsView);
+    };
+
+    const toggleBoundingBox = () => {
+        changeBoundingBoxRefs();
     };
 
     const focusPocket = () => {
@@ -87,7 +96,9 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket 
 
                     <div className="visualization-toolbox-option">
                         <div className="visualization-toolbox-option-description">
-
+                            <FormControl size="small" className="visualization-toolbox-formcontrol">
+                                <Button variant="outlined" onClick={() => toggleBoundingBox()}>Toggle bounding box</Button>
+                            </FormControl>
                         </div>
                     </div>
                 </div>
