@@ -3,7 +3,6 @@ import { PocketData, PocketsViewType, PolymerViewType } from "../../custom-types
 import { FormControl, FormHelperText, MenuItem, Select, Button, Slider, Tooltip } from "@mui/material";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket, setStructureTransparency } from "../../viewer/molstar-visualise";
-import "../app.css";
 import "../../viewer/components/visualization-tool-box.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 

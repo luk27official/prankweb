@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import "../app.css";
 import "./right-panel.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { Model, DockingTaskProps } from "./types";
