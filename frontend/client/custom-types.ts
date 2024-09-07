@@ -132,7 +132,7 @@ export enum PolymerColorType {
 export interface PolymerRepresentation {
     type: PolymerViewType;
     representation: StateObjectSelector; //Mol* representation
-    transparentRepresentation: StateObjectSelector | null; //transparent Mol* representation
+    transparentRepresentationRef: string | null; //transparent Mol* representation reference
 }
 
 export interface PocketRepresentation {

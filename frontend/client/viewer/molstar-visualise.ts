@@ -56,7 +56,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
                 color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
                 ref: "polymer_gaussian"
             }),
-            transparentRepresentation: null
+            transparentRepresentationRef: null
         });
 
         await plugin.builders.structure.representation.addRepresentation(polymer, {
@@ -69,7 +69,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             polymerRepresentations.push({
                 type: PolymerViewType.Atoms,
                 representation: e,
-                transparentRepresentation: null
+                transparentRepresentationRef: null
             });
             setSubtreeVisibility(plugin.state.data, polymerRepresentations.find(e => e.type === PolymerViewType.Atoms)!.representation.ref, true);
         });
@@ -84,7 +84,7 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             polymerRepresentations.push({
                 type: PolymerViewType.Cartoon,
                 representation: e,
-                transparentRepresentation: null
+                transparentRepresentationRef: null
             });
             setSubtreeVisibility(plugin.state.data, polymerRepresentations.find(e => e.type === PolymerViewType.Cartoon)!.representation.ref, true);
         });
@@ -187,12 +187,14 @@ export async function setStructureTransparency(plugin: PluginUIContext, alpha: n
     });
 
     for (const element of polymerRepresentations) {
-        if (element.transparentRepresentation) {
-            plugin.build().delete(element.transparentRepresentation.ref);
+        const builder = plugin.state.data.build();
+        if (element.transparentRepresentationRef) {
+            builder.to(element.representation.ref).delete(element.transparentRepresentationRef);
         }
-        const r = plugin.build().to(element.representation.ref).apply(StateTransforms.Representation.TransparencyStructureRepresentation3DFromBundle, { layers: params }).commit();
-        element.transparentRepresentation = await r;
-        await plugin.build().commit({ doNotUpdateCurrent: true });
+        await builder.commit();
+
+        const r = await plugin.state.data.build().to(element.representation.ref).apply(StateTransforms.Representation.TransparencyStructureRepresentation3DFromBundle, { layers: params }).commit();
+        element.transparentRepresentationRef = r.ref;
     }
 }
 
@@ -879,7 +881,7 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Atoms,
         representation: repr_ball_stick_predict.selector,
-        transparentRepresentation: null
+        transparentRepresentationRef: null
     });
 
     const repr_surface_predict = selection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -890,7 +892,7 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Gaussian_Surface,
         representation: repr_surface_predict.selector,
-        transparentRepresentation: null
+        transparentRepresentationRef: null
     });
 
     const repr_cartoon_predict = selection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -901,7 +903,7 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Cartoon,
         representation: repr_cartoon_predict.selector,
-        transparentRepresentation: null
+        transparentRepresentationRef: null
     });
 
     await builder.commit();
