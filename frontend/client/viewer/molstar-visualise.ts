@@ -50,7 +50,8 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
                 color: 'uniform', colorParams: { value: Color(0xFFFFFF) },
                 ref: "polymer_gaussian"
             }),
-            transparentRepresentationRef: null
+            transparentRepresentationRef: null,
+            overpaintRef: null
         });
 
         await plugin.builders.structure.representation.addRepresentation(polymer, {
@@ -63,7 +64,8 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             polymerRepresentations.push({
                 type: PolymerViewType.Atoms,
                 representation: e,
-                transparentRepresentationRef: null
+                transparentRepresentationRef: null,
+                overpaintRef: null
             });
             setSubtreeVisibility(plugin.state.data, polymerRepresentations.find(e => e.type === PolymerViewType.Atoms)!.representation.ref, true);
         });
@@ -78,7 +80,8 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
             polymerRepresentations.push({
                 type: PolymerViewType.Cartoon,
                 representation: e,
-                transparentRepresentationRef: null
+                transparentRepresentationRef: null,
+                overpaintRef: null
             });
             setSubtreeVisibility(plugin.state.data, polymerRepresentations.find(e => e.type === PolymerViewType.Cartoon)!.representation.ref, true);
         });
@@ -256,12 +259,26 @@ async function overPaintStructureWhite(plugin: PluginUIContext, prediction: Pred
     }
 
     for (const element of polymerRepresentations) {
-        await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+        const builder = plugin.state.data.build();
+        if (element.overpaintRef) {
+            builder.to(element.representation.ref).delete(element.overpaintRef);
+        }
+        await builder.commit();
+
+        const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+        element.overpaintRef = r.ref;
     }
 
     if (predictedPolymerRepresentations.length > 0) {
         for (const element of predictedPolymerRepresentations) {
-            await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+            const builder = plugin.state.data.build();
+            if (element.overpaintRef) {
+                builder.to(element.representation.ref).delete(element.overpaintRef);
+            }
+            await builder.commit();
+
+            const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+            element.overpaintRef = r.ref;
         }
     }
 }
@@ -275,7 +292,6 @@ async function overPaintStructureWhite(plugin: PluginUIContext, prediction: Pred
  */
 async function overPaintPocketsWhite(plugin: PluginUIContext, prediction: PredictionData, pocketRepresentations: PocketRepresentation[]) { //clears current overpaint with a white color
     for (const pocket of prediction.pockets) {
-        const builder = plugin.state.data.build();
         const chains: ChainData[] = [];
         const params: any = [];
 
@@ -302,11 +318,16 @@ async function overPaintPocketsWhite(plugin: PluginUIContext, prediction: Predic
         const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
         for (const element of pocketReprs) {
             if (!element.coloredPocket) {
-                builder.to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params });
+                const builder = plugin.state.data.build();
+                if (element.overpaintRef) {
+                    builder.to(element.representation.ref).delete(element.overpaintRef);
+                }
+                await builder.commit();
+
+                const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+                element.overpaintRef = r.ref;
             }
         }
-
-        await builder.commit();
     }
 }
 
@@ -360,12 +381,26 @@ async function overPaintStructureWithAlphaFold(plugin: PluginUIContext, predicti
     }
 
     for (const element of polymerRepresentations) {
-        await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+        const builder = plugin.state.data.build();
+        if (element.overpaintRef) {
+            builder.to(element.representation.ref).delete(element.overpaintRef);
+        }
+        await builder.commit();
+
+        const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+        element.overpaintRef = r.ref;
     }
 
     if (predictedPolymerRepresentations.length > 0) {
         for (const element of predictedPolymerRepresentations) {
-            await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+            const builder = plugin.state.data.build();
+            if (element.overpaintRef) {
+                builder.to(element.representation.ref).delete(element.overpaintRef);
+            }
+            await builder.commit();
+
+            const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+            element.overpaintRef = r.ref;
         }
     }
 }
@@ -389,7 +424,6 @@ async function overPaintPocketsWithAlphaFold(plugin: PluginUIContext, prediction
     ];
 
     for (const pocket of prediction.pockets) {
-        const builder = plugin.state.data.build();
         const params: any = [];
         const selections: ChainData[] = [];
 
@@ -430,11 +464,16 @@ async function overPaintPocketsWithAlphaFold(plugin: PluginUIContext, prediction
         const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
         for (const element of pocketReprs) {
             if (!element.coloredPocket) {
-                builder.to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params });
+                const builder = plugin.state.data.build();
+                if (element.overpaintRef) {
+                    builder.to(element.representation.ref).delete(element.overpaintRef);
+                }
+                await builder.commit();
+
+                const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+                element.overpaintRef = r.ref;
             }
         }
-
-        await builder.commit();
     }
 }
 
@@ -515,12 +554,26 @@ async function overPaintStructureWithConservation(plugin: PluginUIContext, predi
     }
 
     for (const element of polymerRepresentations) {
-        await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+        const builder = plugin.state.data.build();
+        if (element.overpaintRef) {
+            builder.to(element.representation.ref).delete(element.overpaintRef);
+        }
+        await builder.commit();
+
+        const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+        element.overpaintRef = r.ref;
     }
 
     if (predictedPolymerRepresentations.length > 0) {
         for (const element of predictedPolymerRepresentations) {
-            await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+            const builder = plugin.state.data.build();
+            if (element.overpaintRef) {
+                builder.to(element.representation.ref).delete(element.overpaintRef);
+            }
+            await builder.commit();
+
+            const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+            element.overpaintRef = r.ref;
         }
     }
 }
@@ -547,7 +600,6 @@ async function overPaintPocketsWithConservation(plugin: PluginUIContext, predict
 
 
     for (const pocket of prediction.pockets) {
-        const builder = plugin.state.data.build();
         const params: any = [];
         const selections: ChainData[] = [];
 
@@ -590,11 +642,16 @@ async function overPaintPocketsWithConservation(plugin: PluginUIContext, predict
         const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
         for (const element of pocketReprs) {
             if (!element.coloredPocket) {
-                builder.to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params });
+                const builder = plugin.state.data.build();
+                if (element.overpaintRef) {
+                    builder.to(element.representation.ref).delete(element.overpaintRef);
+                }
+                await builder.commit();
+
+                const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+                element.overpaintRef = r.ref;
             }
         }
-
-        await builder.commit();
     }
 }
 
@@ -669,6 +726,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
             representation: repr_surface,
             coloredPocket: false,
             selectionType: PocketSelectionType.Residues,
+            overpaintRef: null
         });
     }
 
@@ -686,6 +744,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         representation: repr_surface2,
         coloredPocket: true,
         selectionType: PocketSelectionType.Atoms,
+        overpaintRef: null
     });
 
     //the third one selects the whole residues and colors them
@@ -702,6 +761,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         representation: repr_surface3,
         coloredPocket: true,
         selectionType: PocketSelectionType.Residues,
+        overpaintRef: null
     });
 
     //create the ball and stick representations
@@ -720,6 +780,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
             representation: repr_ball_stick,
             coloredPocket: false,
             selectionType: PocketSelectionType.Residues,
+            overpaintRef: null
         });
     }
 
@@ -737,6 +798,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         representation: repr_ball_stick2,
         coloredPocket: true,
         selectionType: PocketSelectionType.Atoms,
+        overpaintRef: null
     });
 
     //the third one selects the whole residues and colors them
@@ -753,6 +815,7 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         representation: repr_ball_stick3,
         coloredPocket: true,
         selectionType: PocketSelectionType.Residues,
+        overpaintRef: null
     });
 }
 
@@ -898,7 +961,8 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Atoms,
         representation: repr_ball_stick_predict.selector,
-        transparentRepresentationRef: null
+        transparentRepresentationRef: null,
+        overpaintRef: null
     });
 
     const repr_surface_predict = selection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -909,7 +973,8 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Gaussian_Surface,
         representation: repr_surface_predict.selector,
-        transparentRepresentationRef: null
+        transparentRepresentationRef: null,
+        overpaintRef: null
     });
 
     const repr_cartoon_predict = selection.apply(StateTransforms.Representation.StructureRepresentation3D, createStructureRepresentationParams(plugin, structure.data, {
@@ -920,7 +985,8 @@ export async function addPredictedPolymerRepresentation(plugin: PluginUIContext,
     predictedPolymerRepresentations.push({
         type: PolymerViewType.Cartoon,
         representation: repr_cartoon_predict.selector,
-        transparentRepresentationRef: null
+        transparentRepresentationRef: null,
+        overpaintRef: null
     });
 
     await builder.commit();
