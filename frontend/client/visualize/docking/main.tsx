@@ -13,7 +13,7 @@ import parsePdbqt from "./pdbqt-parser";
 import { DockingTaskVisualizationBox } from "./visualization-box";
 import { DockingTaskRightPanel } from "./right-panel";
 import { StateObjectSelector } from "molstar/lib/mol-state";
-import { PocketData, PocketsViewType, PolymerViewType, PredictionData } from "../../custom-types";
+import { PocketData, PocketRepresentation, PocketsViewType, PolymerRepresentation, PolymerViewType, PredictionData } from "../../custom-types";
 import { Color } from "molstar/lib/mol-util/color";
 import { setSubtreeVisibility } from "molstar/lib/mol-plugin/behavior/static/state";
 
@@ -26,6 +26,8 @@ export function DockingTask(dp: DockingTaskProps) {
     const [ligandRepresentations, setLigandRepresentations] = React.useState<StateObjectSelector[]>([]);
     const [boundingBoxRefs, setBoundingBoxRefs] = React.useState<string[]>([]);
     const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Ball_Stick_Residues_Color);
+    const [polymerRepresentations, setPolymerRepresentations] = React.useState<PolymerRepresentation[]>([]);
+    const [pocketRepresentations, setPocketRepresentations] = React.useState<PocketRepresentation[]>([]);
 
     // this is a hook that runs when the component is mounted
     useEffect(() => {
@@ -47,8 +49,12 @@ export function DockingTask(dp: DockingTaskProps) {
             const baseUrl: string = getApiEndpoint(dp.database, dp.id) + "/public";
             // Download pdb/mmcif and create a model in Mol*.
             const molData = await loadStructureIntoMolstar(plugin, `${baseUrl}/${dp.structureName}`, 1, "0x0000ff").then(result => result);
-            updatePolymerView(PolymerViewType.Cartoon, plugin, false);
-            setStructureTransparency(plugin, 0.5);
+
+            const polymerRepresentations = molData[2] as PolymerRepresentation[];
+            setPolymerRepresentations(polymerRepresentations);
+
+            updatePolymerView(PolymerViewType.Cartoon, plugin, polymerRepresentations, [], false);
+            setStructureTransparency(plugin, 0.5, polymerRepresentations);
             // Load the docked ligand into Mol*.
             const ligandData = await loadLigandIntoMolstar(plugin, dp.ligandPDBQT, parsedModels);
             setLigandRepresentations(ligandData);
@@ -63,7 +69,7 @@ export function DockingTask(dp: DockingTaskProps) {
             const dockingTasks = await fetch(`${secondUrl}/tasks`).then(res => res.json()).catch(err => console.log(err));
 
             const builder = plugin.state.data.build();
-            const structure: StateObjectSelector = molData[1];
+            const structure: StateObjectSelector = molData[1] as StateObjectSelector;
 
             // Find the pocket rank that we are interested in.
             let pocketRank: string | undefined = undefined;
@@ -79,13 +85,15 @@ export function DockingTask(dp: DockingTaskProps) {
             if (!pocket) return;
             pocket.color = "c7c7c7";
             setPocket(pocket);
-            await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 1, false);
+            const pocketRepresentations = await createPocketsGroupFromJson(plugin, structure, "Pockets", prediction, 1, false);
+            setPocketRepresentations(pocketRepresentations);
+
             await builder.commit();
-            const bbRefs: string[] = await createBoundingBoxForPocket(plugin, pocket);
+            const bbRefs: string[] = await createBoundingBoxForPocket(plugin, pocket, pocketRepresentations);
             setBoundingBoxRefs(bbRefs);
 
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
-                showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
+                showPocketInCurrentRepresentation(plugin, pocketsView, pocketRepresentations, idx, pocket.rank === pocketRank);
             });
         };
         // Parse the PDBQT content and store the models.
@@ -105,16 +113,16 @@ export function DockingTask(dp: DockingTaskProps) {
 
         if (boundingBoxRefs.length === 0) {
             // if there are no bounding boxes, create them
-            const bbRefs: string[] = await createBoundingBoxForPocket(plugin, pocket!);
+            const bbRefs: string[] = await createBoundingBoxForPocket(plugin, pocket!, pocketRepresentations);
             prediction.pockets.forEach((pocket: PocketData, idx: number) => {
-                showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
+                showPocketInCurrentRepresentation(plugin, pocketsView, pocketRepresentations, idx, pocket.rank === pocketRank);
             });
             setBoundingBoxRefs(bbRefs);
             return;
         }
 
         // else delete them
-        removeBoundingBoxForPocket(plugin, boundingBoxRefs, pocket!);
+        removeBoundingBoxForPocket(plugin, boundingBoxRefs, pocket!, pocketRepresentations);
         setBoundingBoxRefs([]);
     };
 
@@ -124,7 +132,7 @@ export function DockingTask(dp: DockingTaskProps) {
         }
 
         prediction.pockets.forEach((pocket: PocketData, idx: number) => {
-            showPocketInCurrentRepresentation(plugin, pocketsView, idx, pocket.rank === pocketRank);
+            showPocketInCurrentRepresentation(plugin, pocketsView, pocketRepresentations, idx, pocket.rank === pocketRank);
         });
 
         setPocketsView(pocketsView);
@@ -140,7 +148,7 @@ export function DockingTask(dp: DockingTaskProps) {
     return <div style={{ display: "flex" }}>
         <div style={{ width: "50%", margin: "5px" }}>
             <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} pocket={prediction?.pockets.find((p: PocketData) => p.rank === pocketRank)}
-                changeBoundingBoxRefs={changeBoundingBoxRefs} />
+                changeBoundingBoxRefs={changeBoundingBoxRefs} polymerRepresentations={polymerRepresentations} />
         </div>
         <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
             <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} ligandRepresentations={ligandRepresentations} />

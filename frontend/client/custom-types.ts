@@ -171,6 +171,9 @@ export interface ReactApplicationState {
     numUpdated: number,
     tabIndex: number,
     initialPocket: number;
+    pocketRepresentations: PocketRepresentation[];
+    polymerRepresentations: PolymerRepresentation[];
+    predictedPolymerRepresentations: PolymerRepresentation[];
 }
 
 /**

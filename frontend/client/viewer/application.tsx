@@ -8,7 +8,7 @@ import { VisualizationToolBox } from "./components/visualization-tool-box";
 import BasicTabs from "./components/pocket-tabs";
 
 import { sendDataToPlugins } from './data-loader';
-import { PocketsViewType, PolymerColorType, PolymerViewType, PredictionData, ReactApplicationProps, ReactApplicationState, ServerTaskInfo, ServerTaskLocalStorageData } from "../custom-types";
+import { PocketsViewType, PolymerColorType, PolymerRepresentation, PocketRepresentation, PolymerViewType, PredictionData, ReactApplicationProps, ReactApplicationState } from "../custom-types";
 
 import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
@@ -71,8 +71,7 @@ export async function renderProteinView(predictionInfo: PredictionInfo) {
 /**
  * A React component containing all of the components other than the Mol* and RCSB plugins.
  */
-export class Application extends React.Component<ReactApplicationProps, ReactApplicationState>
-{
+export class Application extends React.Component<ReactApplicationProps, ReactApplicationState> {
     state = {
         "isLoading": true,
         "data": {} as PredictionData,
@@ -84,7 +83,10 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
         "pluginRcsb": {} as RcsbFv,
         "numUpdated": 0,
         "tabIndex": 0,
-        "initialPocket": 1
+        "initialPocket": 1,
+        "pocketRepresentations": [],
+        "polymerRepresentations": [],
+        "predictedPolymerRepresentations": [],
     };
 
     constructor(props: ReactApplicationProps) {
@@ -116,7 +118,7 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
         });
         const { molstarPlugin, predictionInfo } = this.props;
 
-        let loadedData: [PredictionData, RcsbFv] | null = null;
+        let loadedData = null;
 
         //at first we need the plugins to download the needed data and visualise them
         await sendDataToPlugins(
@@ -129,8 +131,11 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
             loadedData = data;
             this.setState({
                 "isLoading": false,
-                "data": data[0],
-                "pluginRcsb": data[1]
+                "data": data[0] as PredictionData,
+                "pluginRcsb": data[1] as RcsbFv,
+                "polymerRepresentations": data[2] as PolymerRepresentation[],
+                "pocketRepresentations": data[3] as PocketRepresentation[],
+                "predictedPolymerRepresentations": data[4] as PolymerRepresentation[]
             });
         }).catch((error) => {
             this.setState({
@@ -164,7 +169,7 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
     // The following functions are called by the child components to change the visualisation via the child components.
     onPolymerViewChange(value: PolymerViewType) {
         this.setState({ "polymerView": value });
-        updatePolymerView(value, this.props.molstarPlugin, this.state.isShowOnlyPredicted);
+        updatePolymerView(value, this.props.molstarPlugin, this.state.polymerRepresentations, this.state.predictedPolymerRepresentations, this.state.isShowOnlyPredicted);
     }
 
     onPocketsViewChange(value: PocketsViewType) {
@@ -178,7 +183,7 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
 
     onPolymerColorChange(value: PolymerColorType) {
         this.setState({ "polymerColor": value });
-        overPaintPolymer(value, this.props.molstarPlugin, this.state.data);
+        overPaintPolymer(value, this.props.molstarPlugin, this.state.data, this.state.polymerRepresentations, this.state.predictedPolymerRepresentations, this.state.pocketRepresentations);
     }
 
     onShowConfidentChange() {
@@ -186,7 +191,7 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
         this.setState({
             "isShowOnlyPredicted": isShowOnlyPredicted
         });
-        updatePolymerView(this.state.polymerView, this.props.molstarPlugin, isShowOnlyPredicted);
+        updatePolymerView(this.state.polymerView, this.props.molstarPlugin, this.state.polymerRepresentations, this.state.predictedPolymerRepresentations, isShowOnlyPredicted);
     }
 
     onToggleAllPockets(visible: boolean) {
@@ -217,10 +222,10 @@ export class Application extends React.Component<ReactApplicationProps, ReactApp
         //here value may be passed as an parameter whilst changing the pocket view type, because the state is not updated yet.
         //Otherwise the value is taken from the state.
         if (value === null || value === undefined) {
-            showPocketInCurrentRepresentation(this.props.molstarPlugin, this.state.pocketsView, index, isVisible);
+            showPocketInCurrentRepresentation(this.props.molstarPlugin, this.state.pocketsView, this.state.pocketRepresentations, index, isVisible);
         }
         else {
-            showPocketInCurrentRepresentation(this.props.molstarPlugin, value, index, isVisible);
+            showPocketInCurrentRepresentation(this.props.molstarPlugin, value, this.state.pocketRepresentations, index, isVisible);
         }
     }
 

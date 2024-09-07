@@ -1,23 +1,24 @@
 import React from "react";
-import { PocketData, PocketsViewType, PolymerViewType } from "../../custom-types";
+import { PocketData, PocketsViewType, PolymerRepresentation, PolymerViewType } from "../../custom-types";
 import { FormControl, FormHelperText, MenuItem, Select, Button, Slider, Tooltip } from "@mui/material";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { updatePolymerView, focusOnSecondLoadedStructure, focusOnPocket, setStructureTransparency } from "../../viewer/molstar-visualise";
 import "../../viewer/components/visualization-tool-box.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket, changeBoundingBoxRefs }: {
+export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket, changeBoundingBoxRefs, polymerRepresentations }: {
     plugin: PluginUIContext;
     changePocketsView: (pocketsView: PocketsViewType) => void;
     pocket: PocketData | undefined;
     changeBoundingBoxRefs: () => void;
+    polymerRepresentations: PolymerRepresentation[];
 }) {
     const [polymerView, setPolymerView] = React.useState<PolymerViewType>(PolymerViewType.Cartoon);
     const [pocketsView, setPocketsView] = React.useState<PocketsViewType>(PocketsViewType.Ball_Stick_Residues_Color);
 
     const changePolymerView = (polymerView: PolymerViewType) => {
         setPolymerView(polymerView);
-        updatePolymerView(polymerView, plugin!, false);
+        updatePolymerView(polymerView, plugin!, polymerRepresentations, [], false);
     };
 
     const changePocketsViewLocal = (pocketsView: PocketsViewType) => {
@@ -135,7 +136,7 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket,
                         max={100}
                         valueLabelDisplay="auto"
                         onChange={(event, value) => {
-                            setStructureTransparency(plugin, 1 - (value as number / 100));
+                            setStructureTransparency(plugin, 1 - (value as number / 100), polymerRepresentations);
                         }}
                     />
                 </div>
