@@ -109,6 +109,35 @@ The feature is implemented in the `visualize` directory in the frontend part of 
 - `visualize.html` - the HTML file that serves as a template for the visualization window.
 - `docking` - a directory that contains the implementation of the docking visualization. This directory is an example of how to implement a new visualization.
 
+See this UML diagram for a better understanding of the flow:
+
+```plantuml
+@startuml
+
+package "Frontend" {
+    component "main\n(visualize.ts)" as visualizeEntrypoint
+    component "getData\n(visualize.ts)" as getData
+    component "MainVis<T>\n(app.tsx)" as MainVis
+    
+    component "Visualization HTML template\n(visualize.html)" as VisualizationHTML
+    component "<DockingTask> component\n(docking/)" as DockingVisualization
+}
+
+package "Backend" {
+    component "Server\n(task API)" as Server
+}
+
+visualizeEntrypoint --> getData : Request visualization
+
+MainVis --> VisualizationHTML : Render using
+DockingVisualization --* MainVis: Example implementation
+
+getData --> Server : Fetch Data
+Server --> MainVis : Provide Data
+
+@enduml
+```
+
 The three newly introduced files are used to implement the visualization feature. The only other change to the frontend part of the application is a change of the `server/server.develop.js` file, where a new route is added to the server that serves the visualization window.
 
 ## How to add a new visualization type
