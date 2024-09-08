@@ -4,7 +4,7 @@
 
 The primary purpose of PrankWeb is to provide a user-friendly interface for the P2rank prediction of protein binding sites. In this research project, I have designed the application in a way that also allows post-processing of the prediction results. This includes the possibility to perform additional computations on the server and visualize the results in the application. These additional post-processing tasks are available in the "Tasks" tab on the right side of the application while viewing a prediction.
 
-
+<img src="./assets/tasks-tab.png" alt="Tasks" width="100%"/>
 
 As an example, we have previously succesfully implemented a task type that allows the user to perform molecular docking of a ligand to a protein structure. This is a complicated computation that needs to be run on a server.
 
