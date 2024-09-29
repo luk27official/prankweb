@@ -24,8 +24,6 @@
 }
 
 #application-rcsb {
-    position: relative;
-    overflow-x: auto;
     overflow-y: auto;
     height: calc(30vh - 68px);
     margin-bottom: 10px;

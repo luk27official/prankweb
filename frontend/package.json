@@ -10,7 +10,7 @@
     "@mui/icons-material": "^5.16.7",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.7",
-    "@rcsb/rcsb-saguaro": "^3.0.8",
+    "@rcsb/rcsb-saguaro": "^3.1.0",
     "autoprefixer": "^10.4.20",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
