@@ -65,8 +65,8 @@ export async function fetchPrediction(
  * @param id The ID of the prediction.
  * @returns An URL to the API endpoint for the prediction.
  */
-export function getApiEndpoint(database: string, id: string) {
-  return `./api/v2/prediction/${database}/${id.toUpperCase()}`;
+export function getApiEndpoint(database: string, id: string, taskType: string = "prediction") {
+  return `./api/v2/${taskType}/${database}/${id.toUpperCase()}`;
 }
 
 /**
@@ -93,5 +93,6 @@ export async function fetchPredictionLog(
  * @returns An URL to the ZIP file.
  */
 export function getApiDownloadUrl({ database, id }: PredictionInfo) {
-  return `./api/v2/prediction/${database}/${id}/public/prankweb.zip`;
+  const baseUrl = getApiEndpoint(database, id);
+  return `${baseUrl}/public/prankweb.zip`;
 }

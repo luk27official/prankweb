@@ -132,6 +132,8 @@ export enum PolymerColorType {
 export interface PolymerRepresentation {
     type: PolymerViewType;
     representation: StateObjectSelector; //Mol* representation
+    transparentRepresentationRef: string | null; //transparency reference
+    overpaintRef: string | null; //overpaint reference
 }
 
 export interface PocketRepresentation {
@@ -139,6 +141,13 @@ export interface PocketRepresentation {
     type: PocketsViewType;
     representation: StateObjectSelector; //Mol* representation
     coloredPocket: boolean; //for efficiency when overpainting
+    selectionType: PocketSelectionType; //either a representation of atoms or whole residues
+    overpaintRef: string | null; //overpaint reference
+}
+
+export enum PocketSelectionType {
+    Atoms = 0,
+    Residues = 1
 }
 
 /**
@@ -164,6 +173,9 @@ export interface ReactApplicationState {
     numUpdated: number,
     tabIndex: number,
     initialPocket: number;
+    pocketRepresentations: PocketRepresentation[];
+    polymerRepresentations: PolymerRepresentation[];
+    predictedPolymerRepresentations: PolymerRepresentation[];
 }
 
 /**
@@ -243,7 +255,7 @@ export interface ServerTaskInfo { // info about the task returned from the serve
     id: string;
     created: string;
     lastChange: string;
-    status: string;
+    status: "queued" | "running" | "failed" | "successful";
     initialData: {
         hash: string;               //hash of the data
         pocket: string;             //pocket id
@@ -262,12 +274,16 @@ export const ServerTaskTypeDescriptors = [ //descriptors for the ServerTaskType
     "Molecular docking"
 ];
 
+export const ServerTaskTypeVisualizationDescriptors = [ //descriptors for the ServerTaskType visualization
+    "docking"
+];
+
 export interface ServerTask {
     name: string;
     params: string[];
     pocket: number;
     created: string;
-    status: string;
+    status: "queued" | "running" | "failed" | "successful";
     type: ServerTaskType;
     responseData: any;
 }

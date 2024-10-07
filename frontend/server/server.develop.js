@@ -30,14 +30,14 @@ function initializeApi(app) {
   if (configuration["proxy-service"]) {
     app.use("/api", proxy(
       configuration["proxy-service"], {
-        "limit": "8mb",
-        "proxyReqPathResolver": (request) => "/api" + request.url,
-      }));
+      "limit": "8mb",
+      "proxyReqPathResolver": (request) => "/api" + request.url,
+    }));
   } else if (configuration["proxy-directory"]) {
     const apiDirectory = path.join(
       __dirname, configuration["proxy-directory"]);
     app.use("/api/v2/prediction", express.static(apiDirectory));
-    logger.info("Serving API from directory.", {"path": apiDirectory});
+    logger.info("Serving API from directory.", { "path": apiDirectory });
   }
 }
 
@@ -69,8 +69,8 @@ function initializeWebpack(app) {
         // Anything starting with 'analyze'.
         serveFromWebpack("analyze.html", res);
       }
-    } 
-    else if(url.startsWith("viewer")) {
+    }
+    else if (url.startsWith("viewer")) {
       if (url.includes("viewer.js")) {
         serveFromWebpack("viewer.js", res);
       } else if (url.includes("assets")) {
@@ -79,7 +79,18 @@ function initializeWebpack(app) {
         // Anything starting with 'viewer'.
         serveFromWebpack("viewer.html", res);
       }
-    }   
+    }
+    else if (url.startsWith("visualize")) {
+      if (url.includes("visualize.js")) {
+        serveFromWebpack("visualize.js", res);
+      } else if (url.includes("assets")) {
+        serveFromFile(getAssetsPath(), url.replace(/.*assets\//, ""), res);
+      }
+      else {
+        // Anything starting with 'visualize'.
+        serveFromWebpack("visualize.html", res);
+      }
+    }
     else if (url.includes(".")) {
       // Full path with extension.
       serveFromWebpack(url, res);
@@ -97,7 +108,7 @@ function createServeWebpackFile(webpackCompiler) {
     webpackCompiler.outputFileSystem.readFile(indexFile, (error, result) => {
       response.end(result);
     });
-  }
+  };
 }
 
 function serveFromFile(directoryPath, filePath, res) {
@@ -111,8 +122,8 @@ function start(app) {
   const port = configuration.port;
   app.listen(port, function onStart(error) {
     if (error) {
-      logger.error("Can't start server.", {"error": error});
+      logger.error("Can't start server.", { "error": error });
     }
-    logger.info("Server has been started.", {"port": port});
+    logger.info("Server has been started.", { "port": port });
   });
 }

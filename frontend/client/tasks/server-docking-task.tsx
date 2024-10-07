@@ -73,7 +73,9 @@ export async function computeDockingTaskOnBackend(prediction: PredictionInfo, po
 
     const hash = await dockingHash(pocket.rank, smiles, exhaustiveness);
 
-    await fetch(`./api/v2/docking/${prediction.database}/${prediction.id}/post`, {
+    const apiEndpoint = getApiEndpoint(prediction.database, prediction.id, "docking");
+
+    await fetch(`${apiEndpoint}/post`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -139,7 +141,8 @@ export async function downloadDockingResult(fileURL: string) {
  * @returns null if no task has finished, otherwise the finished task
  */
 export async function pollForDockingTask(predictionInfo: PredictionInfo) {
-    let taskStatusJSON = await fetch(`./api/v2/docking/${predictionInfo.database}/${predictionInfo.id}/tasks`, { cache: "no-store" })
+    const apiEndpoint = getApiEndpoint(predictionInfo.database, predictionInfo.id, "docking");
+    let taskStatusJSON = await fetch(`${apiEndpoint}/tasks`, { cache: "no-store" })
         .then(res => res.json())
         .catch(err => {
             return;
@@ -152,6 +155,8 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
         const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
         if (tasks.length === 0) return;
         if (tasks.every((task: ServerTaskLocalStorageData) => task.status === "successful" || task.status === "failed")) return;
+        // get the count of "queued" tasks
+        const queuedTasks = taskStatusJSON["tasks"].filter((t: ServerTaskInfo) => t.status === "queued" || t.status === "running").length;
         tasks.forEach(async (task: ServerTaskLocalStorageData, i: number) => {
             if (task.status === "successful" || task.status === "failed") return;
 
@@ -161,14 +166,16 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
             if (individualTask) {
                 if (individualTask.status !== task.status) {
                     //update the status
-                    tasks[i].status = individualTask.status;
+                    tasks[i].status = `${individualTask.status}`;
 
                     //download the computed data
                     if (individualTask.status === "successful") {
                         const hash = await dockingHash(task.pocket.toString(), individualTask.initialData.smiles, individualTask.initialData.exhaustiveness);
-                        const data = await fetch(`./api/v2/docking/${predictionInfo.database}/${predictionInfo.id}/${hash}/public/result.json`)
+                        const data = await fetch(`${apiEndpoint}/${hash}/public/result.json`)
                             .then(res => res.json()).catch(err => console.log(err));
                         tasks[i].responseData = data;
+                    } else if (individualTask.status === "queued") {
+                        tasks[i].status += ` (${queuedTasks} in queue)`;
                     }
 
                     //save the updated tasks

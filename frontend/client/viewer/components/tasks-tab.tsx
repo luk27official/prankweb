@@ -81,7 +81,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                         return;
                     }
 
-                    setInvalidInputMessage(`${baseMessage} Try running the script below to run docking locally.`);
+                    setInvalidInputMessage(`${baseMessage} Running docking with these parameters might take too long. If you want to run the docking locally, please do so via the script provided through clicking the button below.`);
                     setDockingScript(generateBashScriptForDockingTask(smiles, props.pockets[pocketIndex], props.plugin, props.predictionInfo));
                 };
 
@@ -261,7 +261,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             </Paper>
             &nbsp;
             <Paper>
-                <Typography variant="h6" style={{ padding: 10 }}>Finished tasks</Typography>
+                <Typography variant="h6" style={{ padding: 10 }}>Tasks</Typography>
                 <TasksTable pocket={null} predictionInfo={props.predictionInfo} />
             </Paper>
         </div>

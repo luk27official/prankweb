@@ -38,11 +38,8 @@ function getRcsbFvDisplayTypeFromFixed(displayType: RcsbFvDisplayTypesFixed) {
  * @returns The rendered Rcsb plugin.
  */
 export function initRcsb(data: PredictionData, molstarPlugin: PluginUIContext) {
-    const width = calculateViewerWidth();
-
     const boardConfigData: RcsbFvBoardConfigInterface = {
         length: data.structure.sequence.length,
-        trackWidth: width,
         includeAxis: true,
         highlightHoverPosition: true,
         highlightHoverCallback: (trackData: Array<RcsbFvTrackDataElementInterface>) => onHighlight(data, molstarPlugin, trackData),
@@ -60,25 +57,6 @@ export function initRcsb(data: PredictionData, molstarPlugin: PluginUIContext) {
     });
 
     return rcsbPlugin;
-}
-
-/**
- * Method to calculate the width of the viewer.
- * @returns The width
- */
-function calculateViewerWidth() {
-    const width = window.innerWidth;
-
-    const xs = 768;
-    const lg = 1200;
-
-    //768 and 1200 + their multipliers are based on the current setting of bootstrap classes, could be changed
-    //230 is a needed padding... could be maybe a little less, but on the other way smaller numbers can cause unnecessary overflow 
-
-    if (width <= xs) return width;
-
-    // not the best solution, but it works for this layout
-    return Math.floor(width * (7 / 12)) - 250;
 }
 
 /**

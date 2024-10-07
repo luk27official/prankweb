@@ -1,9 +1,10 @@
 import { getApiEndpoint } from "../prankweb-api";
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { loadStructureIntoMolstar, createPocketsGroupFromJson, linkMolstarToRcsb, addPredictedPolymerRepresentation, showAllPocketsInRepresentation } from './molstar-visualise';
-import { PocketsViewType, PredictionData } from "../custom-types";
+import { PocketsViewType, PolymerRepresentation, PredictionData } from "../custom-types";
 import { initRcsb } from './rcsb-visualise';
 import { RcsbFv } from "@rcsb/rcsb-saguaro";
+import { StateObjectSelector } from "molstar/lib/mol-state";
 
 /**
  * Method that initializes both of the plugins.
@@ -14,13 +15,14 @@ import { RcsbFv } from "@rcsb/rcsb-saguaro";
  * @param predicted True if the structure is predicted
  * @returns An updated prediction and the Rcsb plugin
  */
-export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database: string, identifier: string, structureName: string, predicted: boolean): Promise<[PredictionData, RcsbFv]> {
+export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database: string, identifier: string, structureName: string, predicted: boolean) {
     const baseUrl: string = getApiEndpoint(database, identifier) + "/public";
 
     // Download pdb/mmcif and create a model in Mol*.
     const molData = await loadStructureIntoMolstar(molstarPlugin, `${baseUrl}/${structureName}`).then(result => result);
 
-    const structure = molData[1];
+    const structure = molData[1] as StateObjectSelector;
+    const polymerRepresentations = molData[2] as PolymerRepresentation[];
 
     // Download the prediction.
     let prediction: PredictionData = await downloadJsonFromUrl(`${baseUrl}/prediction.json`);
@@ -29,13 +31,16 @@ export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database
     const rcsbPlugin: RcsbFv = initRcsb(prediction, molstarPlugin);
 
     // Add pockets etc. from the prediction to Mol*.
-    await createPocketsGroupFromJson(molstarPlugin, structure!, "Pockets", prediction);
+    const pocketRepresentations = await createPocketsGroupFromJson(molstarPlugin, structure!, "Pockets", prediction);
 
     // Add predicted polymer representation.
-    if (predicted) await addPredictedPolymerRepresentation(molstarPlugin, prediction, structure!);
+    let predictedPolymerRepresentations: PolymerRepresentation[] = [];
+    if (predicted) {
+        predictedPolymerRepresentations = await addPredictedPolymerRepresentation(molstarPlugin, prediction, structure!);
+    }
 
     // Show only the wanted pocket representations.
-    showAllPocketsInRepresentation(molstarPlugin, PocketsViewType.Surface_Atoms_Color);
+    showAllPocketsInRepresentation(molstarPlugin, PocketsViewType.Surface_Atoms_Color, pocketRepresentations);
 
     // Link Molstar to RCSB.
     linkMolstarToRcsb(molstarPlugin, prediction, rcsbPlugin);
@@ -43,7 +48,7 @@ export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database
     // Compute average conservation for each pocket.
     prediction = computePocketConservationAndAFAverage(prediction);
 
-    return [prediction, rcsbPlugin];
+    return [prediction, rcsbPlugin, polymerRepresentations, pocketRepresentations, predictedPolymerRepresentations];
 }
 
 /**
