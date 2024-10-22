@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { ClientTaskLocalStorageData, ClientTaskType, PocketData, ServerTaskLocalStorageData, ServerTaskType } from "../../custom-types";
+import { ClientTaskLocalStorageData, ClientTaskType, PocketData, ServerTaskLocalStorageData, ServerTaskType, getLocalStorageKey } from "../../custom-types";
 import { Button, Paper, Typography } from "@mui/material";
 
 import "./tasks-tab.css";
@@ -38,7 +38,9 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             type: TaskType.Client,
             name: "Volume",
             compute: (params, customName, pocketIndex) => {
-                let savedTasks = localStorage.getItem(`${props.predictionInfo.id}_clientTasks`);
+                const localStorageKey = getLocalStorageKey(props.predictionInfo, "clientTasks");
+
+                let savedTasks = localStorage.getItem(localStorageKey);
                 if (savedTasks) {
                     const tasks: ClientTaskLocalStorageData[] = JSON.parse(savedTasks);
                     const task = tasks.find(task => task.pocket === (pocketIndex + 1) && task.type === ClientTaskType.Volume);
@@ -50,7 +52,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
 
                 const promise = computePocketVolume(props.plugin, props.pockets[pocketIndex]);
                 promise.then((volume: number) => {
-                    savedTasks = localStorage.getItem(`${props.predictionInfo.id}_clientTasks`);
+                    savedTasks = localStorage.getItem(localStorageKey);
                     if (!savedTasks) savedTasks = "[]";
                     const tasks: ClientTaskLocalStorageData[] = JSON.parse(savedTasks);
 
@@ -62,7 +64,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                         "discriminator": "client",
                     });
 
-                    localStorage.setItem(`${props.predictionInfo.id}_clientTasks`, JSON.stringify(tasks));
+                    localStorage.setItem(localStorageKey, JSON.stringify(tasks));
                 });
             },
             parameterDescriptions: []
@@ -106,7 +108,9 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
 
                 handleInvalidDockingInput("");
 
-                let savedTasks = localStorage.getItem(`${props.predictionInfo.id}_serverTasks`);
+                const localStorageKey = getLocalStorageKey(props.predictionInfo, "serverTasks");
+
+                let savedTasks = localStorage.getItem(localStorageKey);
                 if (!savedTasks) savedTasks = "[]";
                 const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
                 tasks.push({
@@ -119,7 +123,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                     "responseData": null,
                     "discriminator": "server",
                 });
-                localStorage.setItem(`${props.predictionInfo.id}_serverTasks`, JSON.stringify(tasks));
+                localStorage.setItem(localStorageKey, JSON.stringify(tasks));
                 const taskPostRequest = computeDockingTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex], smiles, props.plugin, exhaustiveness);
                 if (taskPostRequest === null) {
                     tasks[tasks.length - 1].status = "failed";

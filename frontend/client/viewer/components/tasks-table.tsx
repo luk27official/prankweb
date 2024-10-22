@@ -12,7 +12,7 @@ import { useInterval } from "./tools";
 
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { PocketData, ServerTaskTypeVisualizationDescriptors } from "../../custom-types";
-import { ClientTaskLocalStorageData, ServerTaskLocalStorageData, ServerTaskTypeDescriptors, ClientTaskTypeDescriptors, ClientTaskType, ServerTaskType } from "../../custom-types";
+import { ClientTaskLocalStorageData, ServerTaskLocalStorageData, ServerTaskTypeDescriptors, ClientTaskTypeDescriptors, ClientTaskType, ServerTaskType, getLocalStorageKey } from "../../custom-types";
 import { dockingHash, downloadDockingResult, pollForDockingTask } from "../../tasks/server-docking-task";
 import { Order, getComparator, isInstanceOfClientTaskLocalStorageData, isInstanceOfServerTaskLocalStorageData } from "./tools";
 import { PredictionInfo } from "../../prankweb-api";
@@ -104,12 +104,15 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 
 export function TasksTable(props: { pocket: PocketData | null, predictionInfo: PredictionInfo; }) {
 
-    let serverTasks = localStorage.getItem(`${props.predictionInfo.id}_serverTasks`);
+    const localStorageServerKey = getLocalStorageKey(props.predictionInfo, "serverTasks");
+    const localStorageClientKey = getLocalStorageKey(props.predictionInfo, "clientTasks");
+
+    let serverTasks = localStorage.getItem(localStorageServerKey);
     if (!serverTasks) serverTasks = "[]";
     let serverTasksParsed: ServerTaskLocalStorageData[] = JSON.parse(serverTasks);
     if (props.pocket !== null) serverTasksParsed = serverTasksParsed.filter((task: ServerTaskLocalStorageData) => task.pocket === Number(props.pocket!.rank));
 
-    let clientTasks = localStorage.getItem(`${props.predictionInfo.id}_clientTasks`);
+    let clientTasks = localStorage.getItem(localStorageClientKey);
     if (!clientTasks) clientTasks = "[]";
     let clientTasksParsed: ClientTaskLocalStorageData[] = JSON.parse(clientTasks);
     if (props.pocket !== null) clientTasksParsed = clientTasksParsed.filter((task: ClientTaskLocalStorageData) => task.pocket === Number(props.pocket!.rank));
@@ -171,16 +174,16 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
     useInterval(pollDocking, 1000 * 7);
 
     const removeClientTaskFromLocalStorage = (task: ClientTaskLocalStorageData) => () => {
-        const clientTasksParsed: ClientTaskLocalStorageData[] = JSON.parse(localStorage.getItem(`${props.predictionInfo.id}_clientTasks`) || "[]");
+        const clientTasksParsed: ClientTaskLocalStorageData[] = JSON.parse(localStorage.getItem(localStorageClientKey) || "[]");
         const newClientTasks = clientTasksParsed.filter((t: ClientTaskLocalStorageData) => t.created !== task.created);
-        localStorage.setItem(`${props.predictionInfo.id}_clientTasks`, JSON.stringify(newClientTasks));
+        localStorage.setItem(localStorageClientKey, JSON.stringify(newClientTasks));
         setRender(numRenders + 1);
     };
 
     const removeServerTaskFromLocalStorage = (task: ServerTaskLocalStorageData) => () => {
-        const serverTasksParsed: ServerTaskLocalStorageData[] = JSON.parse(localStorage.getItem(`${props.predictionInfo.id}_serverTasks`) || "[]");
+        const serverTasksParsed: ServerTaskLocalStorageData[] = JSON.parse(localStorage.getItem(localStorageServerKey) || "[]");
         const newServerTasks = serverTasksParsed.filter((t: ServerTaskLocalStorageData) => t.created !== task.created);
-        localStorage.setItem(`${props.predictionInfo.id}_serverTasks`, JSON.stringify(newServerTasks));
+        localStorage.setItem(localStorageServerKey, JSON.stringify(newServerTasks));
         setRender(numRenders + 1);
     };
 
