@@ -48,10 +48,10 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket,
 
     return (
         <>
-            <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "75vh" }}></div>
+            <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "74vh" }}></div>
             <div id="visualization-tooltip">
                 <Tooltip title={<span style={{ fontSize: "1.5em", whiteSpace: "pre-wrap" }}>{tooltipText}</span>} placement="left-end">
-                    <i className="bi bi-info-circle" style={{ "display": "block", zIndex: "1", position: "absolute", left: "47.5%", top: "77.5vh" }}></i>
+                    <i className="bi bi-info-circle" style={{ "display": "block", zIndex: "1", position: "absolute", left: "62.5%", top: "76.5vh" }}></i>
                 </Tooltip>
             </div>
             <div className="visualization-toolbox-container" id="visualization-toolbox">
