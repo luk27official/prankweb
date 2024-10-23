@@ -44,14 +44,14 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket,
         plugin.canvas3d?.requestCameraReset();
     };
 
-    const tooltipText = `Ligands shown in blue color are a part of the loaded structure.\nLigands shown in violet color are the docked ligands.\n\nNote that the bounding box does not represent the actual bounding box size and is shown for reference only.`;
+    const tooltipText = `Ligands shown in blue color are a part of the loaded structure.\nLigands colored by element symbols are the docked ligands.\n\nNote that the bounding box does not represent the actual bounding box size and is shown for reference only.`;
 
     return (
         <>
-            <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "75vh" }}></div>
+            <div id="molstar-wrapper" style={{ width: "100%", position: "relative", height: "74vh" }}></div>
             <div id="visualization-tooltip">
                 <Tooltip title={<span style={{ fontSize: "1.5em", whiteSpace: "pre-wrap" }}>{tooltipText}</span>} placement="left-end">
-                    <i className="bi bi-info-circle" style={{ "display": "block", zIndex: "1", position: "absolute", left: "47.5%", top: "77.5vh" }}></i>
+                    <i className="bi bi-info-circle" style={{ "display": "block", zIndex: "1", position: "absolute", left: "62.5%", top: "76.5vh" }}></i>
                 </Tooltip>
             </div>
             <div className="visualization-toolbox-container" id="visualization-toolbox">

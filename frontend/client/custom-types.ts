@@ -292,3 +292,7 @@ export interface ServerTaskLocalStorageData extends ServerTask {
     //potentially may contain more data
     discriminator: 'server'; // used to distinguish between ClientTask and ServerTask
 }
+
+export function getLocalStorageKey(predictionInfo: PredictionInfo, key: string) {
+    return `${predictionInfo.id}_${predictionInfo.database}_${key}`;
+}

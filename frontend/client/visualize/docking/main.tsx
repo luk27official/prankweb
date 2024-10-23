@@ -146,11 +146,11 @@ export function DockingTask(dp: DockingTaskProps) {
     }
 
     return <div style={{ display: "flex" }}>
-        <div style={{ width: "50%", margin: "5px" }}>
+        <div style={{ width: "65%", margin: "5px" }}>
             <DockingTaskVisualizationBox plugin={plugin!} changePocketsView={changePocketsView} pocket={prediction?.pockets.find((p: PocketData) => p.rank === pocketRank)}
                 changeBoundingBoxRefs={changeBoundingBoxRefs} polymerRepresentations={polymerRepresentations} />
         </div>
-        <div id="content-wrapper" style={{ width: "50%", margin: "5px" }}>
+        <div id="content-wrapper" style={{ width: "35%", margin: "5px" }}>
             <DockingTaskRightPanel pdbqtModels={pdbqtModels} dp={dp} plugin={plugin!} ligandRepresentations={ligandRepresentations} />
         </div>
     </div>;
@@ -170,8 +170,7 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
         const structure = await plugin.builders.structure.createStructure(mdl, { name: 'model', params: {} });
         const representation = await plugin.builders.structure.representation.addRepresentation(structure, {
             type: 'ball-and-stick',
-            color: 'uniform',
-            colorParams: { value: Color(0xff00ff) },
+            color: 'element-symbol'
         });
 
         // hide the ligands, keep just the first model visible

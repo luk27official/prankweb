@@ -1,5 +1,5 @@
 import { PredictionInfo, getApiEndpoint } from "../prankweb-api";
-import { PocketData, Point3D, ServerTaskInfo, ServerTaskLocalStorageData } from "../custom-types";
+import { getLocalStorageKey, PocketData, Point3D, ServerTaskInfo, ServerTaskLocalStorageData } from "../custom-types";
 
 import { getPocketAtomCoordinates } from "../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
@@ -148,9 +148,11 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
             return;
         }); //we could handle the error, but we do not care if the poll fails sometimes
 
+    const localStorageKey = getLocalStorageKey(predictionInfo, "serverTasks");
+
     if (taskStatusJSON) {
         //look into the local storage and check if there are any updates
-        let savedTasks = localStorage.getItem(`${predictionInfo.id}_serverTasks`);
+        let savedTasks = localStorage.getItem(localStorageKey);
         if (!savedTasks) savedTasks = "[]";
         const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
         if (tasks.length === 0) return;
@@ -179,12 +181,12 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
                     }
 
                     //save the updated tasks
-                    localStorage.setItem(`${predictionInfo.id}_serverTasks`, JSON.stringify(tasks));
+                    localStorage.setItem(localStorageKey, JSON.stringify(tasks));
                 }
             }
         });
     }
-    return localStorage.getItem(`${predictionInfo.id}_serverTasks`);
+    return localStorage.getItem(localStorageKey);
 }
 
 /**
