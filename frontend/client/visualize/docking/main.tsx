@@ -170,8 +170,7 @@ async function loadLigandIntoMolstar(plugin: PluginUIContext | undefined, docked
         const structure = await plugin.builders.structure.createStructure(mdl, { name: 'model', params: {} });
         const representation = await plugin.builders.structure.representation.addRepresentation(structure, {
             type: 'ball-and-stick',
-            color: 'uniform',
-            colorParams: { value: Color(0xff00ff) },
+            color: 'element-symbol'
         });
 
         // hide the ligands, keep just the first model visible

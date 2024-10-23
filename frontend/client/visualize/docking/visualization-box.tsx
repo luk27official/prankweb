@@ -44,7 +44,7 @@ export function DockingTaskVisualizationBox({ plugin, changePocketsView, pocket,
         plugin.canvas3d?.requestCameraReset();
     };
 
-    const tooltipText = `Ligands shown in blue color are a part of the loaded structure.\nLigands shown in violet color are the docked ligands.\n\nNote that the bounding box does not represent the actual bounding box size and is shown for reference only.`;
+    const tooltipText = `Ligands shown in blue color are a part of the loaded structure.\nLigands colored by element symbols are the docked ligands.\n\nNote that the bounding box does not represent the actual bounding box size and is shown for reference only.`;
 
     return (
         <>
