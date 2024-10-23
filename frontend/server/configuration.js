@@ -7,5 +7,5 @@ module.exports = {
   //"proxy-directory": "../../data/database/",
   // Use the option bellow to proxy commands to task runner instance.
   // This allows you to run tasks or connect to existing instance (https://prankweb.cz).
-  "proxy-service": "http://localhost:8020",
+  "proxy-service": "https://prankweb.cz",
 };
