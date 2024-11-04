@@ -23,12 +23,23 @@ def prepare_output_prankweb(
         configuration: Execution) -> ExecutionResult:
     output_directory = configuration.output_directory
     os.makedirs(output_directory, exist_ok=True)
-    #
+
     _copy_conservation(
         conservation, os.path.join(p2rank_output, "conservation"))
+    _prepare_prediction_file(
+        os.path.join(output_directory, "prediction.json"),
+        structure,
+        conservation,
+        p2rank_output,
+        configuration)
+
+    # Copy the prediction file to the p2rank_output directory temporarily for the zip
+    shutil.copy(os.path.join(output_directory, "prediction.json"), p2rank_output)
     _zip_directory(
         p2rank_output, os.path.join(output_directory, "prankweb.zip"))
-    #
+    # Remove the prediction file from the p2rank_output directory
+    os.remove(os.path.join(p2rank_output, "prediction.json"))
+
     output_structure_name = "structure." + _extension(
         structure.raw_structure_file)
     output_structure_file = os.path.join(
@@ -37,13 +48,7 @@ def prepare_output_prankweb(
     with open(structure.raw_structure_file, "rb") as input_stream, \
             gzip.open(output_structure_file, "wb") as output_stream:
         shutil.copyfileobj(input_stream, output_stream)
-    #
-    _prepare_prediction_file(
-        os.path.join(output_directory, "prediction.json"),
-        structure,
-        conservation,
-        p2rank_output,
-        configuration)
+
     return ExecutionResult(output_structure_file=output_structure_name)
 
 
