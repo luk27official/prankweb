@@ -3,6 +3,7 @@ import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { StateObjectSelector } from "molstar/lib/mol-state";
 import { PredictionInfo } from "./prankweb-api";
 import { Color } from "molstar/lib/mol-util/color";
+import { Bundle } from "molstar/lib/mol-model/structure/structure/element/bundle";
 
 /**
  * These interfaces represent information from the server that is received from the prediction API endpoint.
@@ -141,13 +142,7 @@ export interface PocketRepresentation {
     type: PocketsViewType;
     representation: StateObjectSelector; //Mol* representation
     coloredPocket: boolean; //for efficiency when overpainting
-    selectionType: PocketSelectionType; //either a representation of atoms or whole residues
     overpaintRef: string | null; //overpaint reference
-}
-
-export enum PocketSelectionType {
-    Atoms = 0,
-    Residues = 1
 }
 
 /**
@@ -296,3 +291,9 @@ export interface ServerTaskLocalStorageData extends ServerTask {
 export function getLocalStorageKey(predictionInfo: PredictionInfo, key: string) {
     return `${predictionInfo.id}_${predictionInfo.database}_${key}`;
 }
+
+export type OverPaintParams = {
+    bundle: Bundle,
+    color: Color,
+    clear: boolean;
+};

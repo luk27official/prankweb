@@ -1,7 +1,7 @@
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { Color } from "molstar/lib/mol-util/color";
 import { Asset } from "molstar/lib/mol-util/assets";
-import { AlphaFoldColorsMolStar, AlphaFoldThresholdsMolStar, PredictionData, PocketData, MolstarResidue, ChainData, PolymerRepresentation, PolymerColorType, PolymerViewType, PocketRepresentation, PocketsViewType, Point3D, PocketSelectionType } from '../custom-types';
+import { AlphaFoldColorsMolStar, AlphaFoldThresholdsMolStar, PredictionData, PocketData, MolstarResidue, ChainData, PolymerRepresentation, PolymerColorType, PolymerViewType, PocketRepresentation, PocketsViewType, Point3D, OverPaintParams } from '../custom-types';
 import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
 import { MolScriptBuilder as MS } from "molstar/lib/mol-script/language/builder";
 import { createStructureRepresentationParams } from "molstar/lib/mol-plugin-state/helpers/structure-representation-params";
@@ -92,12 +92,17 @@ export async function loadStructureIntoMolstar(plugin: PluginUIContext, structur
     return [model, structure, polymerRepresentations];
 }
 
+/**
+ * Creates representation of the ligands in the structure.
+ * @param plugin Mol* plugin
+ * @param structure Mol* structure representation
+ * @param color Color of the ligands
+ */
 export async function createLigandRepresentations(plugin: PluginUIContext, structure: StateObjectSelector, color: `0x${string}` = "0x") {
     const shownGroups = ["water", "ion", "ligand", "nucleic", "lipid", "branched", "non-standard", "coarse"] as const;
 
     for (const group of shownGroups) {
         const component = await plugin.builders.structure.tryCreateComponentStatic(structure, group);
-        console.log(color);
         if (component) {
             if (color !== "0x" && group !== "water") {
                 await plugin.builders.structure.representation.addRepresentation(component, {
@@ -132,40 +137,23 @@ function getLogBaseX(x: number, y: number) {
  * @returns void
  */
 export function updatePolymerView(value: PolymerViewType, plugin: PluginUIContext, polymerRepresentations: PolymerRepresentation[], predictedPolymerRepresentations: PolymerRepresentation[], showConfidentResidues: boolean) {
-    //firstly check if the structure is a predicted one
-    //and if we're supposed to show only confident residues
+    // firstly check if the structure is a predicted one
+    // and if we're supposed to show only confident residues
     if (predictedPolymerRepresentations.length > 0 && showConfidentResidues) {
-        //if so, show the predicted polymer representation
-        for (const element of predictedPolymerRepresentations) {
-            if (element.type === value) {
-                setSubtreeVisibility(plugin.state.data, element.representation.ref, false);
-            } else {
-                setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
-            }
-        }
+        // if so, show the predicted polymer representation
+        // it might seem weird, but setSubtreeVisibility "false" means "show"
+        predictedPolymerRepresentations.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, element.type !== value));
 
-        //and hide all other ones
-        for (const element of polymerRepresentations) {
-            setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
-        }
+        // hide all other ones
+        polymerRepresentations.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, true));
         return;
     }
 
-    //if predicted and not showing confident residues, show none
-    if (predictedPolymerRepresentations.length > 0) {
-        for (const element of predictedPolymerRepresentations) {
-            setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
-        }
-    }
+    // if predicted and not showing confident residues, show none
+    predictedPolymerRepresentations.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, true));
 
-    //lastly, show only the selected representation
-    for (const element of polymerRepresentations) {
-        if (element.type === value) {
-            setSubtreeVisibility(plugin.state.data, element.representation.ref, false);
-        } else {
-            setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
-        }
-    }
+    // lastly, show only the selected representation
+    polymerRepresentations.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, element.type !== value));
 }
 
 /**
@@ -226,6 +214,23 @@ export async function overPaintPolymer(value: PolymerColorType, plugin: PluginUI
 }
 
 /**
+ * Overpaints a given element representation with given parameters.
+ * @param plugin Mol* plugin
+ * @param element Element to be overpainted (either a pocket or a polymer representation)
+ * @param params Parameters for the overpaint
+ */
+async function overPaintOneRepresentation(plugin: PluginUIContext, element: PocketRepresentation | PolymerRepresentation, params: OverPaintParams[]) {
+    const builder = plugin.state.data.build();
+    if (element.overpaintRef) {
+        builder.to(element.representation.ref).delete(element.overpaintRef);
+    }
+    await builder.commit();
+
+    const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
+    element.overpaintRef = r.ref;
+}
+
+/**
  * Overpaints the structure with a white color.
  * @param plugin Mol* plugin
  * @param prediction Prediction data
@@ -235,7 +240,7 @@ export async function overPaintPolymer(value: PolymerColorType, plugin: PluginUI
  */
 async function overPaintStructureWhite(plugin: PluginUIContext, prediction: PredictionData, polymerRepresentations: PolymerRepresentation[], predictedPolymerRepresentations: PolymerRepresentation[]) {
     const chains: ChainData[] = [];
-    const params: any = [];
+    const params: OverPaintParams[] = [];
 
     for (let i = 0; i < prediction.structure.indices.length; i++) {
         let splitIndice = prediction.structure.indices[i].split("_");
@@ -258,29 +263,8 @@ async function overPaintStructureWhite(plugin: PluginUIContext, prediction: Pred
         });
     }
 
-    for (const element of polymerRepresentations) {
-        const builder = plugin.state.data.build();
-        if (element.overpaintRef) {
-            builder.to(element.representation.ref).delete(element.overpaintRef);
-        }
-        await builder.commit();
-
-        const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-        element.overpaintRef = r.ref;
-    }
-
-    if (predictedPolymerRepresentations.length > 0) {
-        for (const element of predictedPolymerRepresentations) {
-            const builder = plugin.state.data.build();
-            if (element.overpaintRef) {
-                builder.to(element.representation.ref).delete(element.overpaintRef);
-            }
-            await builder.commit();
-
-            const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-            element.overpaintRef = r.ref;
-        }
-    }
+    polymerRepresentations.forEach(element => overPaintOneRepresentation(plugin, element, params));
+    predictedPolymerRepresentations.forEach(element => overPaintOneRepresentation(plugin, element, params));
 }
 
 /**
@@ -293,7 +277,7 @@ async function overPaintStructureWhite(plugin: PluginUIContext, prediction: Pred
 async function overPaintPocketsWhite(plugin: PluginUIContext, prediction: PredictionData, pocketRepresentations: PocketRepresentation[]) { //clears current overpaint with a white color
     for (const pocket of prediction.pockets) {
         const chains: ChainData[] = [];
-        const params: any = [];
+        const params: OverPaintParams[] = [];
 
         for (const residue of pocket.residues) {
             let splitResidue = residue.split("_");
@@ -315,17 +299,11 @@ async function overPaintPocketsWhite(plugin: PluginUIContext, prediction: Predic
                 clear: false
             });
         }
+
         const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
         for (const element of pocketReprs) {
             if (!element.coloredPocket) {
-                const builder = plugin.state.data.build();
-                if (element.overpaintRef) {
-                    builder.to(element.representation.ref).delete(element.overpaintRef);
-                }
-                await builder.commit();
-
-                const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-                element.overpaintRef = r.ref;
+                overPaintOneRepresentation(plugin, element, params);
             }
         }
     }
@@ -342,7 +320,7 @@ async function overPaintPocketsWhite(plugin: PluginUIContext, prediction: Predic
 async function overPaintStructureWithAlphaFold(plugin: PluginUIContext, prediction: PredictionData, polymerRepresentations: PolymerRepresentation[], predictedPolymerRepresentations: PolymerRepresentation[]) { //paints the structure with the alpha fold prediction
     if (!prediction.structure.scores.plddt) return;
 
-    const params: any = [];
+    const params: OverPaintParams[] = [];
     const selections: ChainData[] = [];
 
     //create the selections for the pockets
@@ -380,29 +358,8 @@ async function overPaintStructureWithAlphaFold(plugin: PluginUIContext, predicti
         });
     }
 
-    for (const element of polymerRepresentations) {
-        const builder = plugin.state.data.build();
-        if (element.overpaintRef) {
-            builder.to(element.representation.ref).delete(element.overpaintRef);
-        }
-        await builder.commit();
-
-        const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-        element.overpaintRef = r.ref;
-    }
-
-    if (predictedPolymerRepresentations.length > 0) {
-        for (const element of predictedPolymerRepresentations) {
-            const builder = plugin.state.data.build();
-            if (element.overpaintRef) {
-                builder.to(element.representation.ref).delete(element.overpaintRef);
-            }
-            await builder.commit();
-
-            const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-            element.overpaintRef = r.ref;
-        }
-    }
+    polymerRepresentations.forEach(element => overPaintOneRepresentation(plugin, element, params));
+    predictedPolymerRepresentations.forEach(element => overPaintOneRepresentation(plugin, element, params));
 }
 
 /**
@@ -424,7 +381,7 @@ async function overPaintPocketsWithAlphaFold(plugin: PluginUIContext, prediction
     ];
 
     for (const pocket of prediction.pockets) {
-        const params: any = [];
+        const params: OverPaintParams[] = [];
         const selections: ChainData[] = [];
 
         for (const residue of pocket.residues) {
@@ -464,14 +421,7 @@ async function overPaintPocketsWithAlphaFold(plugin: PluginUIContext, prediction
         const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
         for (const element of pocketReprs) {
             if (!element.coloredPocket) {
-                const builder = plugin.state.data.build();
-                if (element.overpaintRef) {
-                    builder.to(element.representation.ref).delete(element.overpaintRef);
-                }
-                await builder.commit();
-
-                const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-                element.overpaintRef = r.ref;
+                overPaintOneRepresentation(plugin, element, params);
             }
         }
     }
@@ -505,7 +455,7 @@ export function computeNormalizedConservation(prediction: PredictionData) {
 async function overPaintStructureWithConservation(plugin: PluginUIContext, prediction: PredictionData, polymerRepresentations: PolymerRepresentation[], predictedPolymerRepresentations: PolymerRepresentation[]) {
     if (!prediction.structure.scores.conservation) return;
 
-    const params: any = [];
+    const params: OverPaintParams[] = [];
     const thresholds = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0];
     const colors: Color[] = [];
 
@@ -553,29 +503,8 @@ async function overPaintStructureWithConservation(plugin: PluginUIContext, predi
         });
     }
 
-    for (const element of polymerRepresentations) {
-        const builder = plugin.state.data.build();
-        if (element.overpaintRef) {
-            builder.to(element.representation.ref).delete(element.overpaintRef);
-        }
-        await builder.commit();
-
-        const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-        element.overpaintRef = r.ref;
-    }
-
-    if (predictedPolymerRepresentations.length > 0) {
-        for (const element of predictedPolymerRepresentations) {
-            const builder = plugin.state.data.build();
-            if (element.overpaintRef) {
-                builder.to(element.representation.ref).delete(element.overpaintRef);
-            }
-            await builder.commit();
-
-            const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-            element.overpaintRef = r.ref;
-        }
-    }
+    polymerRepresentations.forEach(element => overPaintOneRepresentation(plugin, element, params));
+    predictedPolymerRepresentations.forEach(element => overPaintOneRepresentation(plugin, element, params));
 }
 
 /**
@@ -600,7 +529,7 @@ async function overPaintPocketsWithConservation(plugin: PluginUIContext, predict
 
 
     for (const pocket of prediction.pockets) {
-        const params: any = [];
+        const params: OverPaintParams[] = [];
         const selections: ChainData[] = [];
 
         for (const residue of pocket.residues) {
@@ -642,14 +571,7 @@ async function overPaintPocketsWithConservation(plugin: PluginUIContext, predict
         const pocketReprs = pocketRepresentations.filter(e => e.pocketId === pocket.name);
         for (const element of pocketReprs) {
             if (!element.coloredPocket) {
-                const builder = plugin.state.data.build();
-                if (element.overpaintRef) {
-                    builder.to(element.representation.ref).delete(element.overpaintRef);
-                }
-                await builder.commit();
-
-                const r = await plugin.build().to(element.representation).apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, { layers: params }).commit();
-                element.overpaintRef = r.ref;
+                overPaintOneRepresentation(plugin, element, params);
             }
         }
     }
@@ -679,9 +601,8 @@ export async function createPocketsGroupFromJson(plugin: PluginUIContext, struct
     return pocketRepresentations;
 }
 
-//creates pockets' representation one by one and assigns them to the groups
 /**
- * 
+ * Creates pockets' representation one by one and assigns them to the groups
  * @param plugin Mol* plugin
  * @param structure Mol* structure (returned from the first call of loadStructureIntoMolstar())
  * @param pocket Current pocket data
@@ -725,7 +646,6 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
             type: PocketsViewType.Surface_Atoms_Color,
             representation: repr_surface,
             coloredPocket: false,
-            selectionType: PocketSelectionType.Residues,
             overpaintRef: null
         });
     }
@@ -743,7 +663,6 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Surface_Atoms_Color,
         representation: repr_surface2,
         coloredPocket: true,
-        selectionType: PocketSelectionType.Atoms,
         overpaintRef: null
     });
 
@@ -760,7 +679,6 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Surface_Residues_Color,
         representation: repr_surface3,
         coloredPocket: true,
-        selectionType: PocketSelectionType.Residues,
         overpaintRef: null
     });
 
@@ -779,7 +697,6 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
             type: PocketsViewType.Ball_Stick_Residues_Color,
             representation: repr_ball_stick,
             coloredPocket: false,
-            selectionType: PocketSelectionType.Residues,
             overpaintRef: null
         });
     }
@@ -797,7 +714,6 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Ball_Stick_Atoms_Color,
         representation: repr_ball_stick2,
         coloredPocket: true,
-        selectionType: PocketSelectionType.Atoms,
         overpaintRef: null
     });
 
@@ -814,12 +730,10 @@ export async function createPocketFromJson(plugin: PluginUIContext, structure: S
         type: PocketsViewType.Ball_Stick_Residues_Color,
         representation: repr_ball_stick3,
         coloredPocket: true,
-        selectionType: PocketSelectionType.Residues,
         overpaintRef: null
     });
 }
 
-//sets the pocket visibility in mol* in one representation
 /**
  * Method which sets the visibility of one pocket in the desired representation
  * @param plugin Mol* plugin
@@ -833,24 +747,18 @@ export function showPocketInCurrentRepresentation(plugin: PluginUIContext, repre
     if (isVisible) {
         //show the pocket
         const currentPocketRepr = pocketRepresentations.filter(e => e.type === representationType && e.pocketId === `pocket${pocketIndex + 1}`);
-
-        for (const element of currentPocketRepr) {
-            setSubtreeVisibility(plugin.state.data, element.representation.ref, false);
-        }
+        currentPocketRepr.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, false));
 
         //hide other representations
         const otherPocketRepr = pocketRepresentations.filter(e => e.type !== representationType && e.pocketId === `pocket${pocketIndex + 1}`);
-        for (const element of otherPocketRepr) {
-            setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
-        }
+        otherPocketRepr.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, true));
+
         return;
     }
 
     //else hide all representations
     const pocketRepr = pocketRepresentations.filter(e => e.pocketId === `pocket${pocketIndex + 1}`);
-    for (const element of pocketRepr) {
-        setSubtreeVisibility(plugin.state.data, element.representation.ref, true);
-    }
+    pocketRepr.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, true));
 }
 
 /**
@@ -861,15 +769,7 @@ export function showPocketInCurrentRepresentation(plugin: PluginUIContext, repre
  * @returns void
  */
 export function showAllPocketsInRepresentation(plugin: PluginUIContext, representationType: PocketsViewType, pocketRepresentations: PocketRepresentation[]) {
-    for (const representation of pocketRepresentations) {
-        if (representation.type === representationType) {
-            setSubtreeVisibility(plugin.state.data, representation.representation.ref, false);
-        }
-
-        else {
-            setSubtreeVisibility(plugin.state.data, representation.representation.ref, true);
-        }
-    }
+    pocketRepresentations.forEach(element => setSubtreeVisibility(plugin.state.data, element.representation.ref, element.type !== representationType));
 }
 
 /**
