@@ -193,6 +193,15 @@ RUN chmod a+x ./p2rank.sh \
   && chmod a+x ./run_p2rank_task.py
 
 #
+# administration tools
+WORKDIR /opt/administration
+COPY --chown=user:user ./administration/requirements.txt ./
+RUN pip3 install -r requirements.txt
+COPY --chown=user:user ./administration ./
+
+RUN chmod a+x ./create_pdb_database.py
+
+#
 # environment
 WORKDIR /opt/executor-p2rank
 ENV PYTHONPATH="/opt/alignment-based-conservation:/opt/hmm-based-conservation"
