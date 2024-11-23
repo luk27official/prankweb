@@ -97,7 +97,7 @@ def _create_folders(args: typing.Dict[str, str]):
     
     logger.info("All folders created")
 
-def _download_pdb_entries(args: typing.Dict[str, str]):
+def _get_pdb_entries(args: typing.Dict[str, str]):
     # First, get a list of all PDB entries from the following endpoint
     url_entries = "https://data.rcsb.org/rest/v1/holdings/current/entry_ids"
 
@@ -122,27 +122,7 @@ def _download_pdb_entries(args: typing.Dict[str, str]):
 
     entries_list = list(entries)
 
-    os.makedirs(os.path.join(args["output_directory"], "pdb"), exist_ok=True)
-
-    for entry in entries_list:
-        filename = os.path.join(args["output_directory"], "pdb", f"{entry}.pdb")
-
-        if not os.path.exists(filename):
-            with open(filename, "wb") as f:
-                f.write(response.content)
-
-            url_entry = f"https://files.rcsb.org/download/{entry}.pdb"
-            response = requests.get(url_entry)
-            if response.status_code != 200:
-                logger.error(f"Failed to download PDB entry {entry}: {response.text}")
-                continue
-
-            logger.info(f"Downloaded PDB entry {entry}")
-
-        else:
-            logger.info(f"PDB entry {entry} already exists")
-
-    logger.info("All PDB entries downloaded")
+    logger.info("Returning list of PDB entries")
 
     return entries_list
 
@@ -262,7 +242,7 @@ if __name__ == "__main__":
     logger.info("Creating a new database ...")
 
     _create_folders(args)
-    pdb_entries = _download_pdb_entries(args)
+    pdb_entries = _get_pdb_entries(args)
 
     _run_predictions(args, pdb_entries)
 
