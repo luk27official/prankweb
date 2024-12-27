@@ -205,6 +205,8 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         setOpenConfirmDialogServerTasks(true);
     };
 
+    const isUrl = (url: any) => { return typeof url === 'string' && (url.startsWith("http://") || url.startsWith("https://")); };
+
     return (
         <>
             {openConfirmDialogServerTasks && <ConfirmDialog setOpenDialog={setOpenConfirmDialogServerTasks} callback={removeServerTaskFromLocalStorage(serverTaskToDelete!)} task={serverTaskToDelete!} />}
@@ -224,7 +226,8 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                     <TableCell>{"-"}</TableCell>
                                     <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
                                     <TableCell>
-                                        {(!isNaN(task.data)) ? task.data.toFixed(1) : task.data}
+                                        {isUrl(task.data) ? <a href={task.data} target="_blank" rel="noreferrer" style={{ "color": "blue" }}>successful</a> :
+                                            (!isNaN(task.data)) ? task.data.toFixed(1) : task.data}
                                         {task.type === ClientTaskType.Volume && " Å³"}
                                     </TableCell>
                                     <TableCell>

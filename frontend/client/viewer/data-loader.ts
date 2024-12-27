@@ -5,6 +5,7 @@ import { PocketsViewType, PolymerRepresentation, PredictionData } from "../custo
 import { initRcsb } from './rcsb-visualise';
 import { RcsbFv } from "@rcsb/rcsb-saguaro";
 import { StateObjectSelector } from "molstar/lib/mol-state";
+import { getAhojDBURL } from "../tasks/client-ahoj-db";
 
 /**
  * Method that initializes both of the plugins.
@@ -47,6 +48,11 @@ export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database
 
     // Compute average conservation for each pocket.
     prediction = computePocketConservationAndAFAverage(prediction);
+
+    // Compute AHoJ-DB URL for each pocket.
+    prediction.pockets.forEach(pocket => {
+        pocket.ahojDBURL = getAhojDBURL(pocket, molstarPlugin);
+    });
 
     return [prediction, rcsbPlugin, polymerRepresentations, pocketRepresentations, predictedPolymerRepresentations];
 }

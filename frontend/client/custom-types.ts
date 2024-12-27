@@ -39,6 +39,7 @@ export interface PocketData {
     isVisible?: boolean;        //if the pocket is visible
     avgConservation?: number;   //computed average conservation of the pocket
     avgAlphaFold?: number;      //computed average AlphaFold score of the pocket
+    ahojDBURL?: string;         //computed AHoJ-DB URL of the pocket
 }
 
 export interface Metadata {
@@ -227,11 +228,13 @@ export interface Point3D {
 }
 
 export enum ClientTaskType {
-    Volume = 0
+    Volume = 0,
+    AHoJDBURL = 1
 }
 
 export const ClientTaskTypeDescriptors = [ //descriptors for the ClientTaskType
     "Pocket volume",
+    "AHoJ-DB URL"
 ];
 
 export interface ClientTask {
