@@ -14,7 +14,6 @@ import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { computePocketVolume } from "../../tasks/client-atoms-volume";
 import { TasksTable } from "./tasks-table";
 import NoPockets from "./no-pockets";
-import { getAhojDBURL } from "../../tasks/client-ahoj-db";
 
 enum TaskType {
     Client,
@@ -135,41 +134,6 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                 "Enter the exhaustiveness for Autodock Vina (recommended: 32, allowed range: 1-64)"
             ],
             parameterDefaults: ["", "32"]
-        },
-        {
-            id: 3,
-            specificType: ClientTaskType.AHoJDBURL,
-            type: TaskType.Client,
-            name: "AHoJDB URL",
-            compute: (params, customName, pocketIndex) => {
-                const localStorageKey = getLocalStorageKey(props.predictionInfo, "clientTasks");
-
-                let savedTasks = localStorage.getItem(localStorageKey);
-                if (savedTasks) {
-                    const tasks: ClientTaskLocalStorageData[] = JSON.parse(savedTasks);
-                    const task = tasks.find(task => task.pocket === (pocketIndex + 1) && task.type === ClientTaskType.AHoJDBURL);
-                    if (task) {
-                        // do not compute the same task twice
-                        return;
-                    }
-                }
-
-                const url = getAhojDBURL(props.pockets[pocketIndex], props.plugin);
-                savedTasks = localStorage.getItem(localStorageKey);
-                if (!savedTasks) savedTasks = "[]";
-                const tasks: ClientTaskLocalStorageData[] = JSON.parse(savedTasks);
-
-                tasks.push({
-                    "pocket": (pocketIndex + 1),
-                    "type": ClientTaskType.AHoJDBURL,
-                    "created": new Date().toISOString(),
-                    "data": url,
-                    "discriminator": "client",
-                });
-
-                localStorage.setItem(localStorageKey, JSON.stringify(tasks));
-            },
-            parameterDescriptions: []
         }
     ];
 

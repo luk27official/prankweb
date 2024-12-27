@@ -39,5 +39,6 @@ export function getAhojDBURL(pocket: PocketData, plugin: PluginUIContext) {
     });
 
     // TODO: Fix this to return the correct URL
+    // TODO: Also watch out for UniProt IDs
     return `https://apoholo.cz/db/search?${pocket.rank}`;
 }

@@ -49,10 +49,12 @@ export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database
     // Compute average conservation for each pocket.
     prediction = computePocketConservationAndAFAverage(prediction);
 
-    // Compute AHoJ-DB URL for each pocket.
-    prediction.pockets.forEach(pocket => {
-        pocket.ahojDBURL = getAhojDBURL(pocket, molstarPlugin);
-    });
+    // Compute AHoJ-DB URL for each pocket (not applicable for custom structures).
+    if (!database.includes("user-upload")) {
+        prediction.pockets.forEach(pocket => {
+            pocket.ahojDBURL = getAhojDBURL(pocket, molstarPlugin);
+        });
+    }
 
     return [prediction, rcsbPlugin, polymerRepresentations, pocketRepresentations, predictedPolymerRepresentations];
 }
