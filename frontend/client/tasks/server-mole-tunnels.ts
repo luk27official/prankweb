@@ -1,5 +1,5 @@
 import { PredictionInfo, getApiEndpoint } from "../prankweb-api";
-import { getLocalStorageKey, PocketData, ServerTaskInfo, ServerTaskLocalStorageData } from "../custom-types";
+import { getLocalStorageKey, PocketData, ServerTaskInfo, ServerTaskLocalStorageData, ServerTaskType } from "../custom-types";
 
 import { md5 } from 'hash-wasm';
 
@@ -95,6 +95,7 @@ export async function pollForTunnelsTask(predictionInfo: PredictionInfo) {
         const queuedTasks = taskStatusJSON["tasks"].filter((t: ServerTaskInfo) => t.status === "queued" || t.status === "running").length;
         tasks.forEach(async (task: ServerTaskLocalStorageData, i: number) => {
             if (task.status === "successful" || task.status === "failed") return;
+            if (task.type !== ServerTaskType.Tunnels) return;
 
             const expectedHash = await tunnelsHash(task.pocket.toString());
 

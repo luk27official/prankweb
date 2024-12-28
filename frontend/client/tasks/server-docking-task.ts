@@ -1,5 +1,5 @@
 import { PredictionInfo, getApiEndpoint } from "../prankweb-api";
-import { getLocalStorageKey, PocketData, Point3D, ServerTaskInfo, ServerTaskLocalStorageData } from "../custom-types";
+import { getLocalStorageKey, PocketData, Point3D, ServerTaskInfo, ServerTaskLocalStorageData, ServerTaskType } from "../custom-types";
 
 import { getPocketAtomCoordinates } from "../viewer/molstar-visualise";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
@@ -161,6 +161,7 @@ export async function pollForDockingTask(predictionInfo: PredictionInfo) {
         const queuedTasks = taskStatusJSON["tasks"].filter((t: ServerTaskInfo) => t.status === "queued" || t.status === "running").length;
         tasks.forEach(async (task: ServerTaskLocalStorageData, i: number) => {
             if (task.status === "successful" || task.status === "failed") return;
+            if (task.type !== ServerTaskType.Docking) return;
 
             const expectedHash = await dockingHash(task.pocket.toString(), task.params[0], task.params[1]);
 
