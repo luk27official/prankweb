@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Run a sample task.
+# Run a docking task.
 #
 import os
 import sys
@@ -11,6 +11,7 @@ import time
 import glob
 import gzip
 import shutil
+from typing import Any
 
 from run_docking import run_docking
 
@@ -46,7 +47,7 @@ def _load_json(path: str):
     with open(path, encoding="utf-8") as stream:
         return json.load(stream)
 
-def _save_status_file(path: str, status: any, taskId: int):
+def _save_status_file(path: str, status: Any, taskId: int):
     """
     Method to save the status file. It will update the lastChange field with the current time.
     """
@@ -54,7 +55,7 @@ def _save_status_file(path: str, status: any, taskId: int):
     status["tasks"][taskId]["lastChange"] = now.strftime('%Y-%m-%dT%H:%M:%S')
     _save_json(path, status)
 
-def _save_json(path: str, content: any):
+def _save_json(path: str, content: Any):
     """
     Method to save a json file to a given path.
     """
