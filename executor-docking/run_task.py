@@ -166,7 +166,6 @@ def execute_directory_task(docking_directory: str, taskId: int):
         _save_status_file(status_file, status, taskId)
         return
 
-    # parse the prediction file and do some calculations - in this case just counting the number of residues per pocket
     # API is /docking/<database_name>/<prediction_name>/<hash>/public/<file_name>
     # split docking_directory to get database_name and prediction_name
     result = []
