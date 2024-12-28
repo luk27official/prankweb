@@ -229,12 +229,10 @@ export interface Point3D {
 
 export enum ClientTaskType {
     Volume = 0,
-    AHoJDBURL = 1
 }
 
 export const ClientTaskTypeDescriptors = [ //descriptors for the ClientTaskType
     "Pocket volume",
-    "AHoJ-DB URL"
 ];
 
 export interface ClientTask {
@@ -265,15 +263,18 @@ export interface ServerTaskInfo { // info about the task returned from the serve
 }
 
 export enum ServerTaskType {
-    Docking = 0
+    Docking = 0,
+    Tunnels = 1,
 }
 
 export const ServerTaskTypeDescriptors = [ //descriptors for the ServerTaskType
-    "Molecular docking"
+    "Molecular docking",
+    "MOLE 2.5 tunnels"
 ];
 
 export const ServerTaskTypeVisualizationDescriptors = [ //descriptors for the ServerTaskType visualization
-    "docking"
+    "docking",
+    "tunnels"
 ];
 
 export interface ServerTask {

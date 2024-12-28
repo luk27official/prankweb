@@ -47,10 +47,12 @@ services:
       CELERY_BROKER_URL: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672"
       PRANKWEB_DATA_PREDICTIONS: "/data/prankweb/predictions/"
       PRANKWEB_DATA_DOCKING: "/data/prankweb/docking/"
+      PRANKWEB_DATA_TUNNELS: "/data/prankweb/tunnels/"
     restart: unless-stopped
     volumes:
       - predictions:/data/prankweb/predictions
       - docking:/data/prankweb/docking
+      - tunnels:/data/prankweb/tunnels
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -73,6 +75,7 @@ services:
       - conservation:/data/conservation
       - predictions:/data/prankweb/predictions
       - docking:/data/prankweb/docking
+      - tunnels:/data/prankweb/tunnels
   executor-docking:
     build:
       context: ./
@@ -89,7 +92,24 @@ services:
       - predictions:/data/prankweb/predictions
     depends_on:
       rabbitmq:
-        condition: service_healthy   
+        condition: service_healthy
+  executor-tunnels:
+    build:
+      context: ./
+      dockerfile: ./executor-tunnels/Dockerfile
+      args:
+        UID: ${UID:-5988}
+        GID: ${GID:-5988}
+    command: ["celery", "--app=celery_tunnels", "worker", "--queues=tunnels", "--concurrency=4", "--hostname=executor-tunnels"]
+    environment:
+      CELERY_BROKER_URL: "amqp://${RABBITMQ_DEFAULT_USER:-user}:${RABBITMQ_DEFAULT_PASS:-1234}@rabbitmq:5672"
+    restart: unless-stopped
+    volumes:
+      - tunnels:/data/prankweb/tunnels
+      - predictions:/data/prankweb/predictions
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
   monitor:
     build:
       context: ./
@@ -123,3 +143,6 @@ volumes:
   docking:
     external: True
     name: prankweb_docking
+  tunnels:
+    external: True
+    name: prankweb_tunnels
