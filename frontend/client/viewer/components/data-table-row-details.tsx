@@ -49,9 +49,9 @@ export default function DataTableRowDetails(props: { pocket: PocketData; setTab:
         value: pocket.avgConservation!
     });
 
-    if (pocket.ahojDBURL) shownProperties.push({
-        name: "AHoJ-DB URL",
-        value: pocket.ahojDBURL!
+    if (pocket.ahojDBElement) shownProperties.push({
+        name: "AHoJ search parameters",
+        value: pocket.ahojDBElement!
     });
 
     const isURL = (url: any) => { return typeof url === 'string' && (url.startsWith("http://") || url.startsWith("https://")); };

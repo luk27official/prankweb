@@ -1,8 +1,9 @@
+import React from "react";
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { PocketData } from "../custom-types";
-import { getPocketAtomCoordinates } from "../viewer/molstar-visualise";
+import { getPocketAtomCoordinates, getResidueFromSurfaceAtom } from "../viewer/molstar-visualise";
 
-export function getAhojDBURL(pocket: PocketData, plugin: PluginUIContext) {
+export function getAHoJElement(pocket: PocketData, plugin: PluginUIContext, structureId: string) {
     const coords = getPocketAtomCoordinates(plugin, pocket.surface);
 
     const points: Array<Array<number>> = [];
@@ -38,7 +39,11 @@ export function getAhojDBURL(pocket: PocketData, plugin: PluginUIContext) {
         }
     });
 
-    // TODO: Fix this to return the correct URL
-    // TODO: Also watch out for UniProt IDs
-    return `https://apoholo.cz/db/search?${pocket.rank}`;
+    const coordsIdx = coords.findIndex(coord => coord.x === nearestCoord[0] && coord.y === nearestCoord[1] && coord.z === nearestCoord[2]);
+    const atom = pocket.surface[coordsIdx];
+
+    const residue = getResidueFromSurfaceAtom(plugin, atom);
+
+    // TODO: this should probably point to an URL with the actual data, but probably not supported by the current AHoJ interface
+    return <a href={`https://apoholo.cz/`} target="_blank" rel="noreferrer">{structureId} {residue?.chain.authAsymId} {residue?.authName} {residue?.authSeqNumber}</a>;
 }

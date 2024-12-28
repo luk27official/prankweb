@@ -1,11 +1,11 @@
 import { getApiEndpoint } from "../prankweb-api";
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { loadStructureIntoMolstar, createPocketsGroupFromJson, linkMolstarToRcsb, addPredictedPolymerRepresentation, showAllPocketsInRepresentation } from './molstar-visualise';
-import { PocketsViewType, PolymerRepresentation, PredictionData } from "../custom-types";
+import { PocketData, PocketsViewType, PolymerRepresentation, PredictionData } from "../custom-types";
 import { initRcsb } from './rcsb-visualise';
 import { RcsbFv } from "@rcsb/rcsb-saguaro";
 import { StateObjectSelector } from "molstar/lib/mol-state";
-import { getAhojDBURL } from "../tasks/client-ahoj-db";
+import { getAHoJElement } from "../tasks/client-ahoj-db";
 
 /**
  * Method that initializes both of the plugins.
@@ -51,8 +51,8 @@ export async function sendDataToPlugins(molstarPlugin: PluginUIContext, database
 
     // Compute AHoJ-DB URL for each pocket (not applicable for custom structures).
     if (!database.includes("user-upload")) {
-        prediction.pockets.forEach(pocket => {
-            pocket.ahojDBURL = getAhojDBURL(pocket, molstarPlugin);
+        prediction.pockets.forEach((pocket: PocketData) => {
+            pocket.ahojDBElement = getAHoJElement(pocket, molstarPlugin, identifier);
         });
     }
 

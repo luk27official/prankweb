@@ -1007,6 +1007,41 @@ export function focusOnPocket(plugin: PluginUIContext, pocket: PocketData) {
 }
 
 /**
+ * Returns the residue information from a given surface atom id
+ * @param plugin Mol* plugin
+ * @param loci 
+ * @returns Residue information
+ */
+export function getResidueFromSurfaceAtom(plugin: PluginUIContext, surfaceAtom: string) {
+    const sel = getSurfaceAtomSelection(plugin, [surfaceAtom.toString()]);
+    const loci = getStructureElementLoci(StructureSelection.toLociWithSourceUnits(sel));
+    if (!loci) return null;
+
+    const structureElement = StructureElement.Stats.ofLoci(loci);
+    const location = structureElement.firstElementLoc;
+    const residue: MolstarResidue = {
+        authName: StructureProperties.atom.auth_comp_id(location),
+        name: StructureProperties.atom.label_comp_id(location),
+        isHet: StructureProperties.residue.hasMicroheterogeneity(location),
+        insCode: StructureProperties.residue.pdbx_PDB_ins_code(location),
+        index: StructureProperties.residue.key(location),
+        seqNumber: StructureProperties.residue.label_seq_id(location),
+        authSeqNumber: StructureProperties.residue.auth_seq_id(location),
+        chain: {
+            asymId: StructureProperties.chain.label_asym_id(location),
+            authAsymId: StructureProperties.chain.auth_asym_id(location),
+            entity: {
+                entityId: StructureProperties.entity.id(location),
+                index: StructureProperties.entity.key(location)
+            },
+            index: StructureProperties.chain.key(location)
+        }
+    };
+
+    return residue;
+}
+
+/**
  * Create a bounding box for the pocket in all representations
  * @param plugin Mol* plugin
  * @param pocket Pocket data
