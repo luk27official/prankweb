@@ -56,7 +56,7 @@ function computeBoundingBox(plugin: PluginUIContext, pocket: PocketData) {
 }
 
 /**
- * Sends requests to the backend to compute the docking task and periodically checks if the task is finished.
+ * Sends requests to the backend to compute the docking task.
  * @param prediction Prediction info
  * @param pocket Pocket data
  * @param smiles SMILES ligand identifier
