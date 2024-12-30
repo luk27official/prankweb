@@ -43,7 +43,7 @@ export function getAHoJElement(pocket: PocketData, plugin: PluginUIContext, stru
     const atom = pocket.surface[coordsIdx];
 
     const residue = getResidueFromSurfaceAtom(plugin, atom);
+    const query = `${structureId}%20${residue?.chain.authAsymId}%20${residue?.authName}%20${residue?.authSeqNumber}`;
 
-    // TODO: this should probably point to an URL with the actual data, but probably not supported by the current AHoJ interface
-    return <a href={`https://apoholo.cz/`} target="_blank" rel="noreferrer">{structureId} {residue?.chain.authAsymId} {residue?.authName} {residue?.authSeqNumber}</a>;
+    return <a href={`https://apoholo.cz/?queries=${query}&job_name=PrankWeb%20Query%20${query}`} target="_blank" rel="noreferrer">Prefilled AHoJ query URL ({query.replaceAll("%20", " ")})</a>;
 }
