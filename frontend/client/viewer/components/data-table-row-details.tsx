@@ -2,6 +2,7 @@ import * as React from 'react';
 import Table from '@mui/material/Table';
 import TableCell from '@mui/material/TableCell';
 import TableRow from '@mui/material/TableRow';
+import Tooltip from '@mui/material/Tooltip';
 import { Button, Paper, TableBody } from '@mui/material';
 import { PocketData } from "../../custom-types";
 import { TasksTable } from "./tasks-table";
@@ -18,6 +19,7 @@ export default function DataTableRowDetails(props: { pocket: PocketData; setTab:
     type shownProperty = {
         name: string;
         value: any;
+        tooltip?: string;
     };
 
     const shownProperties: shownProperty[] = [
@@ -50,8 +52,9 @@ export default function DataTableRowDetails(props: { pocket: PocketData; setTab:
     });
 
     if (pocket.ahojDBElement) shownProperties.push({
-        name: "AHoJ search parameters",
-        value: pocket.ahojDBElement!
+        name: "Ligand-bound/free PDB structures",
+        value: pocket.ahojDBElement!,
+        tooltip: "Prefills the query in the AHoJ webserver to identify other apo (ligand-free) and holo (ligand-bound) PDB structures of the protein."
     });
 
     const isURL = (url: any) => { return typeof url === 'string' && (url.startsWith("http://") || url.startsWith("https://")); };
@@ -63,7 +66,12 @@ export default function DataTableRowDetails(props: { pocket: PocketData; setTab:
                     <TableBody>
                         {shownProperties.map((property, index) =>
                             <TableRow key={index}>
-                                <TableCell>{property.name}</TableCell>
+                                <TableCell>{property.tooltip ?
+                                    <Tooltip title={property.tooltip} placement="top">
+                                        <span>{property.name}</span>
+                                    </Tooltip> :
+                                    <span>{property.name}</span>}
+                                </TableCell>
                                 <TableCell>{isURL(property.value) ? <a href={property.value} target="_blank" style={{ "color": "blue" }}>{property.value}</a> : property.value}</TableCell>
                             </TableRow>
                         )}
