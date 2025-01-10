@@ -136,36 +136,37 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             ],
             parameterDefaults: ["", "32"]
         },
-        {
-            id: 3,
-            specificType: ServerTaskType.Tunnels,
-            type: TaskType.Server,
-            name: "MOLE 2.5 tunnels",
-            compute: (params, customName, pocketIndex) => {
-                const localStorageKey = getLocalStorageKey(props.predictionInfo, "serverTasks");
+        // TEMPORARILY DISABLED UNTIL MOLE 2.5 IS TESTED PROPERLY ON DEV
+        // {
+        //     id: 3,
+        //     specificType: ServerTaskType.Tunnels,
+        //     type: TaskType.Server,
+        //     name: "MOLE 2.5 tunnels",
+        //     compute: (params, customName, pocketIndex) => {
+        //         const localStorageKey = getLocalStorageKey(props.predictionInfo, "serverTasks");
 
-                let savedTasks = localStorage.getItem(localStorageKey);
-                if (!savedTasks) savedTasks = "[]";
-                const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
-                tasks.push({
-                    "name": customName,
-                    "params": params,
-                    "pocket": pocketIndex + 1,
-                    "created": new Date().toISOString(),
-                    "status": "queued",
-                    "type": ServerTaskType.Tunnels,
-                    "responseData": null,
-                    "discriminator": "server",
-                });
-                localStorage.setItem(localStorageKey, JSON.stringify(tasks));
-                const taskPostRequest = computeTunnelsTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex]);
-                if (taskPostRequest === null) {
-                    tasks[tasks.length - 1].status = "failed";
-                }
-            },
-            parameterDescriptions: [],
-            parameterDefaults: []
-        }
+        //         let savedTasks = localStorage.getItem(localStorageKey);
+        //         if (!savedTasks) savedTasks = "[]";
+        //         const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
+        //         tasks.push({
+        //             "name": customName,
+        //             "params": params,
+        //             "pocket": pocketIndex + 1,
+        //             "created": new Date().toISOString(),
+        //             "status": "queued",
+        //             "type": ServerTaskType.Tunnels,
+        //             "responseData": null,
+        //             "discriminator": "server",
+        //         });
+        //         localStorage.setItem(localStorageKey, JSON.stringify(tasks));
+        //         const taskPostRequest = computeTunnelsTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex]);
+        //         if (taskPostRequest === null) {
+        //             tasks[tasks.length - 1].status = "failed";
+        //         }
+        //     },
+        //     parameterDescriptions: [],
+        //     parameterDefaults: []
+        // }
     ];
 
     const [task, setTask] = React.useState<TaskTypeMenuItem>(tasks[0]);
