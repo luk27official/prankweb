@@ -14,6 +14,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { PocketData, ServerTaskTypeVisualizationDescriptors } from "../../custom-types";
 import { ClientTaskLocalStorageData, ServerTaskLocalStorageData, ServerTaskTypeDescriptors, ClientTaskTypeDescriptors, ClientTaskType, ServerTaskType, getLocalStorageKey } from "../../custom-types";
 import { dockingHash, downloadDockingResult, pollForDockingTask } from "../../tasks/server-docking-task";
+import { downloadTunnelsResult, pollForTunnelsTask } from "../../tasks/server-mole-tunnels";
 import { Order, getComparator, isInstanceOfClientTaskLocalStorageData, isInstanceOfServerTaskLocalStorageData } from "./tools";
 import { PredictionInfo } from "../../prankweb-api";
 import ConfirmDialog from "./confirm-dialog";
@@ -122,6 +123,9 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
             case ServerTaskType.Docking:
                 downloadDockingResult(serverTask.responseData[0].url);
                 break;
+            case ServerTaskType.Tunnels:
+                downloadTunnelsResult(serverTask.responseData[0].url);
+                break;
             default:
                 break;
         }
@@ -165,13 +169,18 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
 
 
     // start polling for server tasks
-    const pollDocking = async () => {
+    const pollServerTasks = async () => {
         const tasksChanged = await pollForDockingTask(props.predictionInfo);
         if (serverTasks !== tasksChanged) {
             setRender(numRenders + 1);
         }
+
+        const tasksChanged2 = await pollForTunnelsTask(props.predictionInfo);
+        if (serverTasks !== tasksChanged2) {
+            setRender(numRenders + 1);
+        }
     };
-    useInterval(pollDocking, 1000 * 7);
+    useInterval(pollServerTasks, 1000 * 7);
 
     const removeClientTaskFromLocalStorage = (task: ClientTaskLocalStorageData) => () => {
         const clientTasksParsed: ClientTaskLocalStorageData[] = JSON.parse(localStorage.getItem(localStorageClientKey) || "[]");
@@ -194,7 +203,7 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         return date.slice(0, -5);
     };
 
-    const redirectToVisualization = async (task: ServerTaskLocalStorageData) => {
+    const redirectToDockingVisualization = async (task: ServerTaskLocalStorageData) => {
         const hash = await dockingHash(task.pocket.toString(), task.params[0], task.params[1]);
         window.open(`./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}&structureName=${props.predictionInfo.metadata.structureName}`, "_blank")?.focus();
     };
@@ -204,6 +213,8 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         setServerTaskToDelete(task);
         setOpenConfirmDialogServerTasks(true);
     };
+
+    const isUrl = (url: any) => { return typeof url === 'string' && (url.startsWith("http://") || url.startsWith("https://")); };
 
     return (
         <>
@@ -224,7 +235,8 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                     <TableCell>{"-"}</TableCell>
                                     <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
                                     <TableCell>
-                                        {(!isNaN(task.data)) ? task.data.toFixed(1) : task.data}
+                                        {isUrl(task.data) ? <a href={task.data} target="_blank" rel="noreferrer" style={{ "color": "blue" }}>successful</a> :
+                                            (!isNaN(task.data)) ? task.data.toFixed(1) : task.data}
                                         {task.type === ClientTaskType.Volume && " Å³"}
                                     </TableCell>
                                     <TableCell>
@@ -249,8 +261,8 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                             <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>
                                         </button>
                                         &nbsp;
-                                        {task.status === "successful" &&
-                                            <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToVisualization(task)}>
+                                        {task.status === "successful" && task.type === ServerTaskType.Docking &&
+                                            <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToDockingVisualization(task)}>
                                                 <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
                                             </button>
                                         }

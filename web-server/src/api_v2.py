@@ -5,6 +5,7 @@ from .database_v2 import register_database_v2
 from .database_v3 import register_database_v3
 
 from .docking_task import DockingTask
+from .tunnels_task import TunnelsTask
 
 api_v2 = Blueprint("api_v2", __name__)
 
@@ -97,3 +98,36 @@ def route_get_all_docking_tasks(database_name: str, prediction_name: str):
     """Get all docking tasks from the server."""
     dt = DockingTask(database_name=database_name)
     return dt.get_all_tasks(prediction_name.upper())
+
+# tunnels routes
+
+@api_v2.route(
+    "/tunnels/<database_name>/<prediction_name>/<task_hash>/public/<file_name>",
+    methods=["GET"]
+)
+def route_get_tunnels_file_with_param(database_name: str, prediction_name: str, task_hash: str, file_name: str):
+    """Get a tunnels file from the server."""
+    tt = TunnelsTask(database_name=database_name)
+    return tt.get_file_with_post_param(prediction_name.upper(), file_name, task_hash)
+
+@api_v2.route(
+    "/tunnels/<database_name>/<prediction_name>/tasks",
+    methods=["GET"]
+)
+def route_get_all_tunnels_tasks(database_name: str, prediction_name: str):
+    """Get all tunnels tasks from the server."""
+    tt = TunnelsTask(database_name=database_name)
+    return tt.get_all_tasks(prediction_name.upper())
+
+@api_v2.route(
+    "/tunnels/<database_name>/<prediction_name>/post",
+    methods=["POST"]
+)
+def route_post_tunnels_file(database_name: str, prediction_name: str):
+    """Post a tunnels task to the server.
+    Request body should be a JSON object with the following fields:
+    - hash: str (a hash of the ligand with parameters)
+    - pocket: dict (pocket information from P2rank)"""
+    data = request.get_json(force=True) or {}
+    tt = TunnelsTask(database_name=database_name)
+    return tt.post_task(prediction_name.upper(), data)

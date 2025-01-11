@@ -8,6 +8,7 @@ ENV PYTHONUNBUFFERED=1
 
 ENV PRANKWEB_DATA_PREDICTIONS="/data/prankweb/predictions/"
 ENV PRANKWEB_DATA_DOCKING="/data/prankweb/docking/"
+ENV PRANKWEB_DATA_TUNNELS="/data/prankweb/tunnels/"
 
 RUN apt-get update \
   && apt-get -y --no-install-recommends install \
