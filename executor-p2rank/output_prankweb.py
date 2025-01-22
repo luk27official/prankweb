@@ -175,41 +175,51 @@ def _prepare_conservation(structure, conservation: typing.Dict[str, str]):
     if len(conservation) == 0:
         return None
     result = []
+
+    parsed_region_length = 0
+
     for region in structure["regions"]:
         chain = region["name"]
         conservation_file = conservation.get(chain, None)
         if not conservation_file:
             raise RuntimeError(f"Missing conservation for '{chain}'")
+
+        # We want to get rid of all "X" AAs in the structure_seq
+        # and we want to get rid of all "X" AAs in the chain_scores
         chain_scores = _read_conservation_file(conservation_file)
+        chain_scores_cut = [score for score in chain_scores if score.code != "X"]
+
         region_start = region["start"]
         region_end = region["end"] + 1
-        region_size = region_end - region_start
-        index_range = range(region_start, region_end)
+        region_original_size = region_end - region_start
 
-        if not region_size == len(chain_scores):
-            expected_sequence = ''.join(
-                [structure['sequence'][index] for index in index_range])
+        structure_seq: str = "".join(structure["sequence"])
+        region_to_cut = structure_seq[parsed_region_length : parsed_region_length + region_original_size]
+        region_cut = region_to_cut.replace("X", "")
+
+        if not len(region_cut) == len(chain_scores_cut):
             actual_sequence = ''.join(
-                [item.code for item in chain_scores])
+                [item.code for item in chain_scores_cut])
             message = f"Sequences for chain {chain} " \
                       f"region ({region_start}, {region_end}) " \
-                      f"expected: '{expected_sequence}' " \
+                      f"expected: '{region_cut}' " \
                       f"actual: '{actual_sequence}' " \
                       "must have same size " \
-                      f"({region_size}, {len(chain_scores)})."
+                      f"({region_original_size}, {len(chain_scores_cut)})."
             raise RuntimeError(message)
 
-        for index, score in zip(index_range, chain_scores):
-            # We use masked version, so there can be X in the
-            # computed conservation instead of other code.
-            expected_code = structure["sequence"][index]
+        for index, score in zip(range(len(region_cut)), chain_scores_cut):
+            expected_code = region_cut[index]
             actual_code = score.code
-            if not expected_code == actual_code and not actual_code == "X":
+            if not expected_code == actual_code:
                 logger.debug(
                     f'{chain} {index} '
                     f'expected: "{expected_code}" '
                     f'actual: "{actual_code}"')
             result.append(score.value)
+
+        parsed_region_length += region_original_size
+
     return result
 
 
