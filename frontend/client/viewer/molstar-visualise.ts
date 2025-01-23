@@ -829,7 +829,7 @@ function getSurfaceAtomSelection(plugin: PluginUIContext, ids: string[]) {
  */
 function getSelectionFromChainAuthId(plugin: PluginUIContext, chainId: string, positions: number[]) {
     const query = MS.struct.generator.atomGroups({
-        'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.label_asym_id(), chainId]),
+        'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_asym_id(), chainId]),
         'residue-test': MS.core.set.has([MS.set(...positions), MS.struct.atomProperty.macromolecular.auth_seq_id()]),
         'group-by': MS.struct.atomProperty.macromolecular.residueKey()
     });
@@ -921,7 +921,7 @@ export function getConfidentResiduesFromPrediction(prediction: PredictionData) {
         }
 
         const query = MS.struct.generator.atomGroups({
-            'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.label_asym_id(), chain]),
+            'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_asym_id(), chain]),
             'residue-test': MS.core.set.has([MS.set(...newPositions), MS.struct.atomProperty.macromolecular.auth_seq_id()]),
             'group-by': MS.struct.atomProperty.macromolecular.residueKey()
         });
