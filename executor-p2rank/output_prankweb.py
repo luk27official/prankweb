@@ -197,15 +197,36 @@ def _prepare_conservation(structure, conservation: typing.Dict[str, str]):
         region_to_cut = structure_seq[parsed_region_length : parsed_region_length + region_original_size]
         region_cut = region_to_cut.replace("X", "")
 
-        if not len(region_cut) == len(chain_scores_cut):
+        # Check the lengths of the region and the chain_scores
+        # It still might happen that the chain_scores are longer than the region because of non-standard AAs marked by a different letter than "X"
+        # In this case, we fill the missing values with 0
+        if len(region_cut) > len(chain_scores_cut):
+            new_chain_scores_cut = []
+            j = 0
+            for i in range(len(region_cut)):
+                if j < len(chain_scores_cut) and region_cut[i] == chain_scores_cut[j].code:
+                    new_chain_scores_cut.append(chain_scores_cut[j])
+                    j += 1
+                else:
+                    new_chain_scores_cut.append(ResidueScore(region_cut[i], 0))
+                    logger.debug(f"Filled a missing conservation score with 0 at index {i}, chain {chain}, residue {region_cut[i]}")
+
+            chain_scores_cut = new_chain_scores_cut
+
+            logger.debug("Filled missing scores with 0, " \
+                f"original length: {len(region_cut)} " \
+                f"filled length: {len(chain_scores_cut)}")
+
+        # Otherwise, if the chain_scores are shorter than the region, we raise an error
+        elif len(region_cut) < len(chain_scores_cut):
             actual_sequence = ''.join(
                 [item.code for item in chain_scores_cut])
             message = f"Sequences for chain {chain} " \
-                      f"region ({region_start}, {region_end}) " \
-                      f"expected: '{region_cut}' " \
-                      f"actual: '{actual_sequence}' " \
-                      "must have same size " \
-                      f"({region_original_size}, {len(chain_scores_cut)})."
+                    f"region ({region_start}, {region_end}) " \
+                    f"expected: '{region_cut}' " \
+                    f"actual: '{actual_sequence}' " \
+                    "must have same size " \
+                    f"({region_original_size}, {len(chain_scores_cut)})."
             raise RuntimeError(message)
 
         for index, score in zip(range(len(region_cut)), chain_scores_cut):
