@@ -7,6 +7,7 @@ import dataclasses
 import time
 import uuid
 import re
+import shutil
 from .database import Database, NestedReadOnlyDatabase
 from .celery_client import submit_directory_for_execution
 
@@ -58,7 +59,15 @@ class DatabaseV3(NestedReadOnlyDatabase):
         if directory is None:
             return "", 404
         if os.path.exists(directory):
-            return self._response_file(directory, "info.json")
+            # First, we check whether the task has not already failed. 
+            # In such cases, we want to remove the prediction and run it again.
+            with open(os.path.join(directory, "info.json"), "r") as f:
+                info = json.load(f)
+                if info["status"] == "failed":
+                    # Remove the directory and create a new prediction.
+                    shutil.rmtree(directory)
+                else:
+                    return self._response_file(directory, "info.json")
         pdb_code, chains = _parser_identifier(identifier)
         prediction = Prediction(
             directory=directory,
@@ -90,7 +99,15 @@ class DatabaseV3ConservationHmm(NestedReadOnlyDatabase):
         if directory is None:
             return "", 404
         if os.path.exists(directory):
-            return self._response_file(directory, "info.json")
+            # First, we check whether the task has not already failed. 
+            # In such cases, we want to remove the prediction and run it again.
+            with open(os.path.join(directory, "info.json"), "r") as f:
+                info = json.load(f)
+                if info["status"] == "failed":
+                    # Remove the directory and create a new prediction.
+                    shutil.rmtree(directory)
+                else:
+                    return self._response_file(directory, "info.json")
         pdb_code, chains = _parser_identifier(identifier)
         prediction = Prediction(
             directory=directory,
@@ -164,7 +181,15 @@ class DatabaseV3AlphaFold(NestedReadOnlyDatabase):
         if directory is None:
             return "", 404
         if os.path.exists(directory):
-            return self._response_file(directory, "info.json")
+            # First, we check whether the task has not already failed. 
+            # In such cases, we want to remove the prediction and run it again.
+            with open(os.path.join(directory, "info.json"), "r") as f:
+                info = json.load(f)
+                if info["status"] == "failed":
+                    # Remove the directory and create a new prediction.
+                    shutil.rmtree(directory)
+                else:
+                    return self._response_file(directory, "info.json")
         prediction = Prediction(
             directory=directory,
             identifier=identifier,
@@ -200,7 +225,15 @@ class DatabaseV3AlphaFoldConservationHmm(NestedReadOnlyDatabase):
         if directory is None:
             return "", 404
         if os.path.exists(directory):
-            return self._response_file(directory, "info.json")
+            # First, we check whether the task has not already failed. 
+            # In such cases, we want to remove the prediction and run it again.
+            with open(os.path.join(directory, "info.json"), "r") as f:
+                info = json.load(f)
+                if info["status"] == "failed":
+                    # Remove the directory and create a new prediction.
+                    shutil.rmtree(directory)
+                else:
+                    return self._response_file(directory, "info.json")
         prediction = Prediction(
             directory=directory,
             identifier=identifier,
