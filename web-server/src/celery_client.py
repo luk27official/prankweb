@@ -8,6 +8,7 @@ prankweb.conf.update({
         # the key is the name of the task, the value is the name of the queue
         'prediction': 'p2rank',
         'docking': 'docking',
+        'tunnels': 'tunnels',
     }
 })
 
@@ -32,3 +33,6 @@ def submit_directory_for_execution(directory):
 
 def submit_directory_for_docking(directory, taskId):
     prankweb.send_task("docking", args=[directory, taskId])
+
+def submit_directory_for_tunnels(directory, taskId):
+    prankweb.send_task("tunnels", args=[directory, taskId])

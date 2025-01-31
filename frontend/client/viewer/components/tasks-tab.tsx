@@ -14,6 +14,7 @@ import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { computePocketVolume } from "../../tasks/client-atoms-volume";
 import { TasksTable } from "./tasks-table";
 import NoPockets from "./no-pockets";
+import { computeTunnelsTaskOnBackend } from "../../tasks/server-mole-tunnels";
 
 enum TaskType {
     Client,
@@ -134,7 +135,38 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                 "Enter the exhaustiveness for Autodock Vina (recommended: 32, allowed range: 1-64)"
             ],
             parameterDefaults: ["", "32"]
-        }
+        },
+        // TEMPORARILY DISABLED UNTIL MOLE 2.5 IS TESTED PROPERLY ON DEV
+        // {
+        //     id: 3,
+        //     specificType: ServerTaskType.Tunnels,
+        //     type: TaskType.Server,
+        //     name: "MOLE 2.5 tunnels",
+        //     compute: (params, customName, pocketIndex) => {
+        //         const localStorageKey = getLocalStorageKey(props.predictionInfo, "serverTasks");
+
+        //         let savedTasks = localStorage.getItem(localStorageKey);
+        //         if (!savedTasks) savedTasks = "[]";
+        //         const tasks: ServerTaskLocalStorageData[] = JSON.parse(savedTasks);
+        //         tasks.push({
+        //             "name": customName,
+        //             "params": params,
+        //             "pocket": pocketIndex + 1,
+        //             "created": new Date().toISOString(),
+        //             "status": "queued",
+        //             "type": ServerTaskType.Tunnels,
+        //             "responseData": null,
+        //             "discriminator": "server",
+        //         });
+        //         localStorage.setItem(localStorageKey, JSON.stringify(tasks));
+        //         const taskPostRequest = computeTunnelsTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex]);
+        //         if (taskPostRequest === null) {
+        //             tasks[tasks.length - 1].status = "failed";
+        //         }
+        //     },
+        //     parameterDescriptions: [],
+        //     parameterDefaults: []
+        // }
     ];
 
     const [task, setTask] = React.useState<TaskTypeMenuItem>(tasks[0]);

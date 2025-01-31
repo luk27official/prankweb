@@ -2,7 +2,7 @@ openapi: 3.0.2
 
 info:
   title: Prankweb API
-  version: 1.1.0
+  version: 1.2.0
 
 servers:
   - url: https://prankweb.cz/api/v2/
@@ -113,6 +113,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DockingResponse'
+  /tunnels/{database}/{prediction_task_id}/tasks:
+    get:
+      parameters:
+        - in: path
+          name: database
+          required: true
+          schema:
+            $ref: '#/components/schemas/DatabaseId'
+        - in: path
+          name: prediction_task_id
+          required: true
+          schema:
+            $ref: '#/components/schemas/PredictionTaskId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelsTaskList'
+  /tunnels/{database}/{prediction_task_id}/{tunnels_task_hash}/public/result.json:
+    get:
+      parameters:
+        - in: path
+          name: database
+          required: true
+          schema:
+            $ref: '#/components/schemas/DatabaseId'
+        - in: path
+          name: prediction_task_id
+          required: true
+          schema:
+            $ref: '#/components/schemas/PredictionTaskId'
+        - in: path
+          name: tunnels_task_hash
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TunnelsResponse'
 
 components:
   schemas:
@@ -226,6 +271,62 @@ components:
                   pocket:
                     type: string
     DockingResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          url:
+            type: string
+    TunnelsTaskList:
+      type: object
+      properties:
+        identifier:
+          type: string
+        tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              created:
+                type: string
+                format: date-time
+              lastChange:
+                type: string
+                format: date-time
+              status:
+                type: string
+                enum: ['queued', 'running', 'failed', 'successful']
+              initialData:
+                type: object
+                properties:
+                  hash:
+                    type: string
+                  pocket:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      rank:
+                        type: number
+                      score:
+                        type: number
+                      probability:
+                        type: number
+                      center:
+                        type: array
+                        items:
+                          type: number
+                      residues:
+                        type: array
+                        items:
+                          type: string
+                      surface:
+                        type: array
+                        items:
+                          type: string
+    TunnelsResponse:
       type: array
       items:
         type: object

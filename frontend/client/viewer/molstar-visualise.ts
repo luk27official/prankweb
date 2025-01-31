@@ -829,7 +829,7 @@ function getSurfaceAtomSelection(plugin: PluginUIContext, ids: string[]) {
  */
 function getSelectionFromChainAuthId(plugin: PluginUIContext, chainId: string, positions: number[]) {
     const query = MS.struct.generator.atomGroups({
-        'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.label_asym_id(), chainId]),
+        'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_asym_id(), chainId]),
         'residue-test': MS.core.set.has([MS.set(...positions), MS.struct.atomProperty.macromolecular.auth_seq_id()]),
         'group-by': MS.struct.atomProperty.macromolecular.residueKey()
     });
@@ -921,7 +921,7 @@ export function getConfidentResiduesFromPrediction(prediction: PredictionData) {
         }
 
         const query = MS.struct.generator.atomGroups({
-            'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.label_asym_id(), chain]),
+            'chain-test': MS.core.rel.eq([MS.struct.atomProperty.macromolecular.auth_asym_id(), chain]),
             'residue-test': MS.core.set.has([MS.set(...newPositions), MS.struct.atomProperty.macromolecular.auth_seq_id()]),
             'group-by': MS.struct.atomProperty.macromolecular.residueKey()
         });
@@ -1004,6 +1004,41 @@ export function focusOnPocket(plugin: PluginUIContext, pocket: PocketData) {
     const sel = getSurfaceAtomSelection(plugin, pocket.surface);
     const loci = StructureSelection.toLociWithSourceUnits(sel);
     plugin.managers.camera.focusLoci(loci);
+}
+
+/**
+ * Returns the residue information from a given surface atom id
+ * @param plugin Mol* plugin
+ * @param loci 
+ * @returns Residue information
+ */
+export function getResidueFromSurfaceAtom(plugin: PluginUIContext, surfaceAtom: string) {
+    const sel = getSurfaceAtomSelection(plugin, [surfaceAtom.toString()]);
+    const loci = getStructureElementLoci(StructureSelection.toLociWithSourceUnits(sel));
+    if (!loci) return null;
+
+    const structureElement = StructureElement.Stats.ofLoci(loci);
+    const location = structureElement.firstElementLoc;
+    const residue: MolstarResidue = {
+        authName: StructureProperties.atom.auth_comp_id(location),
+        name: StructureProperties.atom.label_comp_id(location),
+        isHet: StructureProperties.residue.hasMicroheterogeneity(location),
+        insCode: StructureProperties.residue.pdbx_PDB_ins_code(location),
+        index: StructureProperties.residue.key(location),
+        seqNumber: StructureProperties.residue.label_seq_id(location),
+        authSeqNumber: StructureProperties.residue.auth_seq_id(location),
+        chain: {
+            asymId: StructureProperties.chain.label_asym_id(location),
+            authAsymId: StructureProperties.chain.auth_asym_id(location),
+            entity: {
+                entityId: StructureProperties.entity.id(location),
+                index: StructureProperties.entity.key(location)
+            },
+            index: StructureProperties.chain.key(location)
+        }
+    };
+
+    return residue;
 }
 
 /**

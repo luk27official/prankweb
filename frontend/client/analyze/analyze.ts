@@ -43,7 +43,7 @@ async function checkTaskStatus() {
   }
   switch (response.content.status) {
     case TaskStatus.queued:
-      renderQueued()
+      renderQueued();
       queuedTimeout = Math.min(queuedTimeout + 1000, 10000);
       setTimeout(checkTaskStatus, queuedTimeout);
       return;
@@ -56,7 +56,7 @@ async function checkTaskStatus() {
     default:
       renderRunningTask(params.database, params.id);
       setTimeout(checkTaskStatus, 3000);
-      return
+      return;
   }
 }
 
@@ -65,7 +65,7 @@ function getUrlQueryParams() {
   return {
     "database": params.get("database"),
     "id": params.get("code"),
-  }
+  };
 }
 
 function renderInvalidTask() {
@@ -144,7 +144,8 @@ function renderFailedTask(database: string, id: string) {
     UserInterface.progressQuestions,
     UserInterface.progressStdout
   ]);
-  setProgressMessage("Task failed, see the log below for more details.");
+  setProgressMessage("Task failed, see the log below for more details.<br/>");
+  if (!database.includes("user")) setProgressMessage("Task failed, see the log below for more details.<br/><strong>To re-run the prediction, please refresh the page.</strong>");
   setStdout(database, id);
 }
 

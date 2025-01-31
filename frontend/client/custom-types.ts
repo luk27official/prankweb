@@ -39,6 +39,7 @@ export interface PocketData {
     isVisible?: boolean;        //if the pocket is visible
     avgConservation?: number;   //computed average conservation of the pocket
     avgAlphaFold?: number;      //computed average AlphaFold score of the pocket
+    ahojDBElement?: React.ReactNode; //React element for the AHoJ-DB URL
 }
 
 export interface Metadata {
@@ -227,7 +228,7 @@ export interface Point3D {
 }
 
 export enum ClientTaskType {
-    Volume = 0
+    Volume = 0,
 }
 
 export const ClientTaskTypeDescriptors = [ //descriptors for the ClientTaskType
@@ -262,15 +263,18 @@ export interface ServerTaskInfo { // info about the task returned from the serve
 }
 
 export enum ServerTaskType {
-    Docking = 0
+    Docking = 0,
+    Tunnels = 1,
 }
 
 export const ServerTaskTypeDescriptors = [ //descriptors for the ServerTaskType
-    "Molecular docking"
+    "Molecular docking",
+    "MOLE 2.5 tunnels"
 ];
 
 export const ServerTaskTypeVisualizationDescriptors = [ //descriptors for the ServerTaskType visualization
-    "docking"
+    "docking",
+    "tunnels"
 ];
 
 export interface ServerTask {

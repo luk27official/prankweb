@@ -175,41 +175,72 @@ def _prepare_conservation(structure, conservation: typing.Dict[str, str]):
     if len(conservation) == 0:
         return None
     result = []
+
+    parsed_region_length = 0
+
     for region in structure["regions"]:
         chain = region["name"]
         conservation_file = conservation.get(chain, None)
         if not conservation_file:
             raise RuntimeError(f"Missing conservation for '{chain}'")
+
+        # We want to get rid of all "X" AAs in the structure_seq
+        # and we want to get rid of all "X" AAs in the chain_scores
         chain_scores = _read_conservation_file(conservation_file)
+        chain_scores_cut = [score for score in chain_scores if score.code != "X"]
+
         region_start = region["start"]
         region_end = region["end"] + 1
-        region_size = region_end - region_start
-        index_range = range(region_start, region_end)
+        region_original_size = region_end - region_start
 
-        if not region_size == len(chain_scores):
-            expected_sequence = ''.join(
-                [structure['sequence'][index] for index in index_range])
+        structure_seq: str = "".join(structure["sequence"])
+        region_to_cut = structure_seq[parsed_region_length : parsed_region_length + region_original_size]
+        region_cut = region_to_cut.replace("X", "")
+
+        # Check the lengths of the region and the chain_scores
+        # It still might happen that the chain_scores are longer than the region because of non-standard AAs marked by a different letter than "X"
+        # In this case, we fill the missing values with 0
+        if len(region_cut) > len(chain_scores_cut):
+            new_chain_scores_cut = []
+            j = 0
+            for i in range(len(region_cut)):
+                if j < len(chain_scores_cut) and region_cut[i] == chain_scores_cut[j].code:
+                    new_chain_scores_cut.append(chain_scores_cut[j])
+                    j += 1
+                else:
+                    new_chain_scores_cut.append(ResidueScore(region_cut[i], 0))
+                    logger.debug(f"Filled a missing conservation score with 0 at index {i}, chain {chain}, residue {region_cut[i]}")
+
+            chain_scores_cut = new_chain_scores_cut
+
+            logger.debug("Filled missing scores with 0, " \
+                f"original length: {len(region_cut)} " \
+                f"filled length: {len(chain_scores_cut)}")
+
+        # Otherwise, if the chain_scores are shorter than the region, we raise an error
+        elif len(region_cut) < len(chain_scores_cut):
             actual_sequence = ''.join(
-                [item.code for item in chain_scores])
+                [item.code for item in chain_scores_cut])
             message = f"Sequences for chain {chain} " \
-                      f"region ({region_start}, {region_end}) " \
-                      f"expected: '{expected_sequence}' " \
-                      f"actual: '{actual_sequence}' " \
-                      "must have same size " \
-                      f"({region_size}, {len(chain_scores)})."
+                    f"region ({region_start}, {region_end}) " \
+                    f"expected: '{region_cut}' " \
+                    f"actual: '{actual_sequence}' " \
+                    "must have same size " \
+                    f"({region_original_size}, {len(chain_scores_cut)})."
             raise RuntimeError(message)
 
-        for index, score in zip(index_range, chain_scores):
-            # We use masked version, so there can be X in the
-            # computed conservation instead of other code.
-            expected_code = structure["sequence"][index]
+        for index, score in zip(range(len(region_cut)), chain_scores_cut):
+            expected_code = region_cut[index]
             actual_code = score.code
-            if not expected_code == actual_code and not actual_code == "X":
+            if not expected_code == actual_code:
                 logger.debug(
                     f'{chain} {index} '
                     f'expected: "{expected_code}" '
                     f'actual: "{actual_code}"')
             result.append(score.value)
+
+        parsed_region_length += region_original_size
+
     return result
 
 
