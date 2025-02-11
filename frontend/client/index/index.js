@@ -451,11 +451,11 @@ class Submit {
     let url;
     if (conservation) {
       url = this.createUrl(
-        "v3-conservation-hmm",
+        "v4-conservation-hmm",
         code, sealed ? [] : chains);
     } else {
       url = this.createUrl(
-        "v3",
+        "v4",
         code, sealed ? [] : chains);
     }
     window.location.href = url;
@@ -484,7 +484,7 @@ class Submit {
         "prediction-model": model,
       }),
       "configuration.json");
-    this.sendPostRequest("./api/v2/prediction/v3-user-upload", formData);
+    this.sendPostRequest("./api/v2/prediction/v4-user-upload", formData);
   }
 
   asJsonBlob(content) {
@@ -501,7 +501,7 @@ class Submit {
         return;
       }
       const content = await response.json();
-      window.location.href = this.createUrl("v3-user-upload", content.id, []);
+      window.location.href = this.createUrl("v4-user-upload", content.id, []);
     });
   }
 
@@ -510,9 +510,9 @@ class Submit {
     const conservation = view.getConservation();
     let url;
     if (conservation) {
-      url = this.createUrl("v3-alphafold-conservation-hmm", code, []);
+      url = this.createUrl("v4-alphafold-conservation-hmm", code, []);
     } else {
-      url = this.createUrl("v3-alphafold", code, []);
+      url = this.createUrl("v4-alphafold", code, []);
     }
     window.location.href = url;
   }

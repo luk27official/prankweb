@@ -20,7 +20,12 @@
         "v3-alphafold",
         "v3-alphafold-conservation-hmm",
         "v3-conservation-hmm",
-        "v3-user-upload"
+        "v3-user-upload",
+        "v4",
+        "v4-alphafold",
+        "v4-alphafold-conservation-hmm",
+        "v4-conservation-hmm",
+        "v4-user-upload"
       ]
     },
     "created": {
