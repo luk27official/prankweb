@@ -38,16 +38,16 @@ class Prediction:
     chains: typing.Optional[list[str]] = None
 
 
-class DatabaseV3(NestedReadOnlyDatabase):
+class DatabaseV4(NestedReadOnlyDatabase):
 
     def __init__(self):
         super().__init__()
         self.root = os.path.join(
             self._get_database_directory(),
-            "v3")
+            "v4")
 
     def name(self) -> str:
-        return "v3"
+        return "v4"
 
     def create(self, files):
         # Post is not supported.
@@ -83,16 +83,16 @@ class DatabaseV3(NestedReadOnlyDatabase):
         return _create_new_prediction(prediction)
 
 
-class DatabaseV3ConservationHmm(NestedReadOnlyDatabase):
+class DatabaseV4ConservationHmm(NestedReadOnlyDatabase):
 
     def __init__(self):
         super().__init__()
         self.root = os.path.join(
             self._get_database_directory(),
-            "v3-conservation-hmm")
+            "v4-conservation-hmm")
 
     def name(self) -> str:
-        return "v3-conservation-hmm"
+        return "v4-conservation-hmm"
 
     def get_info(self, identifier: str):
         directory = self._get_directory(identifier)
@@ -123,16 +123,16 @@ class DatabaseV3ConservationHmm(NestedReadOnlyDatabase):
         return _create_new_prediction(prediction)
 
 
-class DatabaseV3UserUpload(NestedReadOnlyDatabase):
+class DatabaseV4UserUpload(NestedReadOnlyDatabase):
 
     def __init__(self):
         super().__init__()
         self.root = os.path.join(
             self._get_database_directory(),
-            "v3-user-upload")
+            "v4-user-upload")
 
     def name(self) -> str:
-        return "v3-user-upload"
+        return "v4-user-upload"
 
     def create(self, files):
         if "configuration" not in files or "structure" not in files:
@@ -161,16 +161,16 @@ class DatabaseV3UserUpload(NestedReadOnlyDatabase):
         return os.path.join(self.root, identifier)
 
 
-class DatabaseV3AlphaFold(NestedReadOnlyDatabase):
+class DatabaseV4AlphaFold(NestedReadOnlyDatabase):
 
     def __init__(self):
         super().__init__()
         self.root = os.path.join(
             self._get_database_directory(),
-            "v3-alphafold")
+            "v4-alphafold")
 
     def name(self) -> str:
-        return "v3-alphafold"
+        return "v4-alphafold"
 
     def create(self, files):
         # Post is not supported.
@@ -205,16 +205,16 @@ class DatabaseV3AlphaFold(NestedReadOnlyDatabase):
         return _create_new_prediction(prediction)
 
 
-class DatabaseV3AlphaFoldConservationHmm(NestedReadOnlyDatabase):
+class DatabaseV4AlphaFoldConservationHmm(NestedReadOnlyDatabase):
 
     def __init__(self):
         super().__init__()
         self.root = os.path.join(
             self._get_database_directory(),
-            "v3-alphafold-conservation-hmm")
+            "v4-alphafold-conservation-hmm")
 
     def name(self) -> str:
-        return "v3-alphafold-conservation-hmm"
+        return "v4-alphafold-conservation-hmm"
 
     def create(self, files):
         # Post is not supported.
@@ -364,16 +364,16 @@ def _is_prediction_valid(prediction: Prediction) -> bool:
         return len(prediction.chains) > 0
 
 
-def register_database_v3() -> list[Database]:
-    v3 = DatabaseV3()
-    os.makedirs(v3.root, exist_ok=True)
-    v3_conservation_hmm = DatabaseV3ConservationHmm()
-    os.makedirs(v3_conservation_hmm.root, exist_ok=True)
-    v3_user_upload = DatabaseV3UserUpload()
-    os.makedirs(v3_user_upload.root, exist_ok=True)
-    v3_alpha_fold = DatabaseV3AlphaFold()
-    os.makedirs(v3_alpha_fold.root, exist_ok=True)
-    v3_alpha_fold_conservation_hmm = DatabaseV3AlphaFoldConservationHmm()
-    os.makedirs(v3_alpha_fold_conservation_hmm.root, exist_ok=True)
-    return [v3, v3_conservation_hmm, v3_user_upload,
-            v3_alpha_fold, v3_alpha_fold_conservation_hmm]
+def register_database_v4() -> list[Database]:
+    v4 = DatabaseV4()
+    os.makedirs(v4.root, exist_ok=True)
+    v4_conservation_hmm = DatabaseV4ConservationHmm()
+    os.makedirs(v4_conservation_hmm.root, exist_ok=True)
+    v4_user_upload = DatabaseV4UserUpload()
+    os.makedirs(v4_user_upload.root, exist_ok=True)
+    v4_alphafold = DatabaseV4AlphaFold()
+    os.makedirs(v4_alphafold.root, exist_ok=True)
+    v4_alphafold_conservation_hmm = DatabaseV4AlphaFoldConservationHmm()
+    os.makedirs(v4_alphafold_conservation_hmm.root, exist_ok=True)
+    return [v4, v4_conservation_hmm, v4_user_upload,
+            v4_alphafold, v4_alphafold_conservation_hmm]

@@ -61,7 +61,7 @@ def _retrieve_info_directory(pdb_code: str) -> PrankWebResponse:
 
 
 def database() -> str:
-    return "v3-conservation-hmm"
+    return "v4-conservation-hmm"
 
 
 def retrieve_archive(pdb_code: str, destination: str):

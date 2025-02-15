@@ -12,3 +12,6 @@ data/
 dist/
 node_modules/
 venv/
+
+# Administration stuff (symlinked files)
+executor_p2rank

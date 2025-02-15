@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from .database_v1 import register_database_v1
 from .database_v2 import register_database_v2
 from .database_v3 import register_database_v3
+from .database_v4 import register_database_v4
 
 from .docking_task import DockingTask
 from .tunnels_task import TunnelsTask
@@ -14,7 +15,8 @@ databases = {
     for database in [
         *register_database_v1(),
         *register_database_v2(),
-        *register_database_v3()
+        *register_database_v3(),
+        *register_database_v4()
     ]
 }
 
