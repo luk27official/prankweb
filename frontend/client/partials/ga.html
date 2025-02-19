@@ -1,6 +1,11 @@
 <script type="module" src="./assets/scripts/cookieconsent-config.js"></script>
-<script
-  type="text/plain"
-  data-category="analytics">
-  @googleAnalytics()
+<script type="text/plain" data-category="analytics">
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    window.dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+  gtag("config", "@googleAnalytics()", {"anonymize_ip": true});
 </script>
+<script type="text/plain" data-category="analytics" async
+  src="https://www.googletagmanager.com/gtag/js?id=@googleAnalytics()"></script>
