@@ -126,5 +126,5 @@ function generateGoogleAnalytics() {
   }
 
   // we return only the GA env variable, the rest is handled in the template file
-  return `'{ga}'`;
+  return `'${ga}'`;
 }
