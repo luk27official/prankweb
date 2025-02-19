@@ -124,16 +124,7 @@ function generateGoogleAnalytics() {
   if (devMode || ga === undefined || ga === "") {
     return "''";
   }
-  return `'
-<script async src=\\"https://www.googletagmanager.com/gtag/js?id=${ga}\\"></script>
-<script>
-window.dataLayer = window.dataLayer || [];
-function gtag() {
-  window.dataLayer.push(arguments);
-}
-gtag(\\"js\\", new Date());
-gtag(\\"config\\", \\"${ga}\\", {\\"anonymize_ip\\": true});
-</script>
-'`.replaceAll("\n", " ");
-  // Result must be a one-liner else we get compilation error.
+
+  // we return only the GA env variable, the rest is handled in the template file
+  return `'{ga}'`;
 }
