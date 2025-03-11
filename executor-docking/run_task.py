@@ -31,6 +31,7 @@ class Logger:
     A class to represent a simple logger.
     """
     def __init__(self, log_file: str):
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
         self.log_file = open(log_file, "w")
 
     def log(self, message: str):
