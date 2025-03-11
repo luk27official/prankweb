@@ -131,6 +131,19 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         }
     };
 
+    const handleResultFailed = (serverTask: ServerTaskLocalStorageData) => {
+        switch (serverTask.type) {
+            case ServerTaskType.Docking:
+                window.open(serverTask.responseData[0].url.replace("results.zip", "log"), "_blank")?.focus();
+                break;
+            case ServerTaskType.Tunnels:
+                window.open(serverTask.responseData[0].url.replace("results.zip", "log"), "_blank")?.focus();
+                break;
+            default:
+                break;
+        }
+    };
+
     if (props.pocket === null) {
         if (headCells.find((headCell: HeadCell) => headCell.id === 'pocket') === undefined) {
             headCells.unshift({
@@ -255,7 +268,19 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                     <TableCell>{ServerTaskTypeDescriptors[task.type]}</TableCell>
                                     <TableCell>{task.name}</TableCell>
                                     <TableCell>{makeDateMoreReadable(task.created)}</TableCell>
-                                    <TableCell>{task.status === "successful" ? <span onClick={() => handleResultClick(task)} style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}>successful</span> : task.status}</TableCell>
+                                    <TableCell>
+                                        {task.status === "successful" ? (
+                                            <span onClick={() => handleResultClick(task)} style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}>
+                                                successful
+                                            </span>
+                                        ) : task.status === "failed" ? (
+                                            <span onClick={() => handleResultFailed(task)} style={{ color: "red", textDecoration: "underline", cursor: "pointer" }}>
+                                                failed
+                                            </span>
+                                        ) : (
+                                            task.status
+                                        )}
+                                    </TableCell>
                                     <TableCell>
                                         <button type="button" className="btn btn-outline-secondary btnIcon" title="Delete task" style={{ "padding": "0.25rem" }} onClick={() => handleServerTaskDeleteRequest(task)}>
                                             <i className="bi bi-trash" style={{ "display": "block", "fontSize": "small" }}></i>

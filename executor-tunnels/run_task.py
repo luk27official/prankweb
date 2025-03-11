@@ -101,7 +101,7 @@ def execute_directory_task(tunnels_directory: str, taskId: int):
     """
     Method to execute a task for a given directory and a given taskId.
     """
-    log_filename = os.path.join(tunnels_directory, str(taskId), "log")
+    log_filename = os.path.join(tunnels_directory, str(taskId), "public", "log")
     logger = Logger(log_filename)
 
     result_file = os.path.join(tunnels_directory, str(taskId), "public", "result.json")
