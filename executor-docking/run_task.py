@@ -146,6 +146,8 @@ def execute_directory_task(docking_directory: str, taskId: int):
         logger.log(f"Task {taskId} failed, no structure file found")
         logger.close()
 
+        # update the status file, reload it first to make sure we don't overwrite any changes
+        status = _load_json(status_file)
         status["tasks"][taskId]["status"] = Status.FAILED.value
         _save_status_file(status_file, status, taskId)
         return
@@ -162,6 +164,8 @@ def execute_directory_task(docking_directory: str, taskId: int):
         logger.log(f"Task {taskId} failed, {str(e)}, {repr(e)}")
         logger.close()
 
+        # update the status file, reload it first to make sure we don't overwrite any changes
+        status = _load_json(status_file)
         status["tasks"][taskId]["status"] = Status.FAILED.value
         _save_status_file(status_file, status, taskId)
         return
@@ -193,7 +197,6 @@ def execute_directory_task(docking_directory: str, taskId: int):
     
     # update the status file, reload it first to make sure we don't overwrite any changes
     status = _load_json(status_file)
-    
     status["tasks"][taskId]["status"] = Status.SUCCESSFUL.value
     _save_status_file(status_file, status, taskId)
 
