@@ -1,6 +1,6 @@
 import React from "react";
 import { TunnelData, TunnelsTaskProps } from "./types";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, Button, Tooltip } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import "./right-panel.css";
@@ -64,27 +64,37 @@ function TunnelRow(props: {
                                 <Table size="small">
                                     <TableBody>
                                         <TableRow>
-                                            <TableCell sx={{ fontWeight: 'medium', width: '40%' }}>Type</TableCell>
+                                            <Tooltip title="Classification of the tunnel (e.g., Tunnel, Path, or Pore)" arrow placement="left">
+                                                <TableCell sx={{ fontWeight: 'medium', width: '40%' }}>Type</TableCell>
+                                            </Tooltip>
                                             <TableCell>{tunnel.Type}</TableCell>
                                         </TableRow>
                                         {tunnel.Fingerprint && (
                                             <TableRow>
-                                                <TableCell sx={{ fontWeight: 'medium' }}>Fingerprint</TableCell>
+                                                <Tooltip title="Unique identifier describing the tunnel's path through the structure" arrow placement="left">
+                                                    <TableCell sx={{ fontWeight: 'medium' }}>Fingerprint</TableCell>
+                                                </Tooltip>
                                                 <TableCell>{tunnel.Fingerprint}</TableCell>
                                             </TableRow>
                                         )}
                                         {tunnel.Cavity && (
                                             <TableRow>
-                                                <TableCell sx={{ fontWeight: 'medium' }}>Cavity</TableCell>
+                                                <Tooltip title="Internal cavity connected to this tunnel" arrow placement="left">
+                                                    <TableCell sx={{ fontWeight: 'medium' }}>Cavity</TableCell>
+                                                </Tooltip>
                                                 <TableCell>{tunnel.Cavity}</TableCell>
                                             </TableRow>
                                         )}
                                         <TableRow>
-                                            <TableCell sx={{ fontWeight: 'medium' }}>Profile Points</TableCell>
+                                            <Tooltip title="Number of points sampled along the tunnel centerline" arrow placement="left">
+                                                <TableCell sx={{ fontWeight: 'medium' }}>Profile Points</TableCell>
+                                            </Tooltip>
                                             <TableCell>{tunnel.Profile.length}</TableCell>
                                         </TableRow>
                                         <TableRow>
-                                            <TableCell sx={{ fontWeight: 'medium' }}>Max Radius</TableCell>
+                                            <Tooltip title="Maximum radius found along the tunnel - widest point" arrow placement="left">
+                                                <TableCell sx={{ fontWeight: 'medium' }}>Max Radius</TableCell>
+                                            </Tooltip>
                                             <TableCell>{maxRadius.toFixed(2)} Å</TableCell>
                                         </TableRow>
                                     </TableBody>
@@ -101,31 +111,41 @@ function TunnelRow(props: {
                                             <TableBody>
                                                 {tunnel.Properties.Charge !== undefined && (
                                                     <TableRow>
-                                                        <TableCell sx={{ fontWeight: 'medium', width: '40%' }}>Charge</TableCell>
+                                                        <Tooltip title="Net electrostatic charge of residues lining the tunnel" arrow placement="left">
+                                                            <TableCell sx={{ fontWeight: 'medium', width: '40%' }}>Charge</TableCell>
+                                                        </Tooltip>
                                                         <TableCell>{tunnel.Properties.Charge}</TableCell>
                                                     </TableRow>
                                                 )}
                                                 {tunnel.Properties.Hydrophobicity !== undefined && (
                                                     <TableRow>
-                                                        <TableCell sx={{ fontWeight: 'medium' }}>Hydrophobicity</TableCell>
+                                                        <Tooltip title="Measure of water-repelling character - higher values indicate more hydrophobic tunnels" arrow placement="left">
+                                                            <TableCell sx={{ fontWeight: 'medium' }}>Hydrophobicity</TableCell>
+                                                        </Tooltip>
                                                         <TableCell>{tunnel.Properties.Hydrophobicity.toFixed(2)}</TableCell>
                                                     </TableRow>
                                                 )}
                                                 {tunnel.Properties.Hydropathy !== undefined && (
                                                     <TableRow>
-                                                        <TableCell sx={{ fontWeight: 'medium' }}>Hydropathy</TableCell>
+                                                        <Tooltip title="Combined measure of hydrophobic and hydrophilic character of the tunnel lining" arrow placement="left">
+                                                            <TableCell sx={{ fontWeight: 'medium' }}>Hydropathy</TableCell>
+                                                        </Tooltip>
                                                         <TableCell>{tunnel.Properties.Hydropathy.toFixed(2)}</TableCell>
                                                     </TableRow>
                                                 )}
                                                 {tunnel.Properties.Polarity !== undefined && (
                                                     <TableRow>
-                                                        <TableCell sx={{ fontWeight: 'medium' }}>Polarity</TableCell>
+                                                        <Tooltip title="Proportion of polar (charged) residues lining the tunnel" arrow placement="left">
+                                                            <TableCell sx={{ fontWeight: 'medium' }}>Polarity</TableCell>
+                                                        </Tooltip>
                                                         <TableCell>{tunnel.Properties.Polarity.toFixed(2)}</TableCell>
                                                     </TableRow>
                                                 )}
                                                 {tunnel.Properties.Mutability !== undefined && (
                                                     <TableRow>
-                                                        <TableCell sx={{ fontWeight: 'medium' }}>Mutability</TableCell>
+                                                        <Tooltip title="Average evolutionary conservation score - lower values indicate more conserved residues" arrow placement="left">
+                                                            <TableCell sx={{ fontWeight: 'medium' }}>Mutability</TableCell>
+                                                        </Tooltip>
                                                         <TableCell>{tunnel.Properties.Mutability}</TableCell>
                                                     </TableRow>
                                                 )}
@@ -191,10 +211,18 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
                     <TableHead>
                         <TableRow>
                             <TableCell></TableCell>
-                            <TableCell align="center">ID</TableCell>
-                            <TableCell align="right">Length (Å)</TableCell>
-                            <TableCell align="right">Min R (Å)</TableCell>
-                            <TableCell align="right">Avg R (Å)</TableCell>
+                            <Tooltip title="Tunnel identifier" arrow>
+                                <TableCell align="center">ID</TableCell>
+                            </Tooltip>
+                            <Tooltip title="Total length of the tunnel from start to end point" arrow>
+                                <TableCell align="right">Length (Å)</TableCell>
+                            </Tooltip>
+                            <Tooltip title="Minimum radius along the tunnel profile - indicates the bottleneck" arrow>
+                                <TableCell align="right">Min R (Å)</TableCell>
+                            </Tooltip>
+                            <Tooltip title="Average radius along the tunnel profile" arrow>
+                                <TableCell align="right">Avg R (Å)</TableCell>
+                            </Tooltip>
                         </TableRow>
                     </TableHead>
                     <TableBody>

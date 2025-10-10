@@ -4,6 +4,7 @@ import { FormControl, FormHelperText, MenuItem, Select, Button, Slider, Tooltip 
 import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
 import { updatePolymerView, focusOnPocket, setStructureTransparency } from "../../viewer/molstar-visualise";
 import "../../viewer/components/visualization-tool-box.css";
+import "../tunnels/right-panel.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 export function TunnelsTaskVisualizationBox({ plugin, polymerRepresentations, changePocketsView, pocket }: {
@@ -44,7 +45,7 @@ export function TunnelsTaskVisualizationBox({ plugin, polymerRepresentations, ch
                     <i className="bi bi-info-circle" style={{ "display": "block", zIndex: "1", position: "absolute", left: "62.5%", top: "76.5vh" }}></i>
                 </Tooltip>
             </div>
-            <div className="visualization-toolbox-container" id="visualization-toolbox">
+            <div className="visualization-toolbox-container tunnels-visualization-toolbox" id="visualization-toolbox">
                 <div className="visualization-toolbox-row">
                     <div className="visualization-toolbox-option" style={{ flexBasis: "50%" }}>
                         <div className="visualization-toolbox-option-description">
