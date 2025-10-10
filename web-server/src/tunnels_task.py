@@ -66,10 +66,24 @@ class TunnelsTask:
         #if we successfully found the task directory, we can return the file, if it exists
 
         public_directory = os.path.join(directory, "public")
-        file_name = self._secure_filename(file_name)
-        file_path = os.path.join(public_directory, file_name)
+        # Handle nested paths (e.g., pdb/profile/tunnel_1.pdb)
+        # Secure each part of the path
+        file_parts = file_name.split('/')
+        secure_parts = [self._secure_filename(part) for part in file_parts]
+        secure_file_name = os.path.join(*secure_parts) if len(secure_parts) > 1 else secure_parts[0]
+        file_path = os.path.join(public_directory, secure_file_name)
+        
+        # Ensure the file is within the public directory (prevent directory traversal)
+        real_public = os.path.realpath(public_directory)
+        real_file = os.path.realpath(file_path)
+        if not real_file.startswith(real_public):
+            return "", 403
+            
         if os.path.isfile(file_path):
-            return self._response_file(public_directory, file_name)
+            # For nested paths, we need to serve from the correct subdirectory
+            file_dir = os.path.dirname(file_path)
+            file_basename = os.path.basename(file_path)
+            return self._response_file(file_dir, file_basename)
         return "", 404
     
     @staticmethod

@@ -254,6 +254,21 @@ def run_tunnels(mole_exe_path: str, xml_template_path: str, json_file: str, outp
     base_dir = os.path.dirname(updated_xml_path)
     os.makedirs(os.path.join(output_folder, "public"), exist_ok=True)
     destination_dir = os.path.join(output_folder, "public")
+    
+    # Copy data.json separately for easy access
+    data_json_path = os.path.join(base_dir, "json", "data.json")
+    if os.path.exists(data_json_path):
+        shutil.copy(data_json_path, os.path.join(destination_dir, "data.json"))
+        logger.log(f"Copied data.json to: {os.path.join(destination_dir, 'data.json')}")
+    
+    # Copy PDB directory structure for easy access to tunnel PDB files for visualization
+    pdb_source_dir = os.path.join(base_dir, "pdb")
+    pdb_dest_dir = os.path.join(destination_dir, "pdb")
+    if os.path.exists(pdb_source_dir):
+        shutil.copytree(pdb_source_dir, pdb_dest_dir, dirs_exist_ok=True)
+        logger.log(f"Copied PDB directory to: {pdb_dest_dir}")
+    
+    # Create zip archive with all results
     shutil.make_archive(os.path.join(destination_dir, "results"), 'zip', base_dir)
     logger.log(f"Results saved to: {os.path.join(destination_dir, 'results.zip')}")
 
