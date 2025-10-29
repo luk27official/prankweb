@@ -202,7 +202,7 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
     return (
         <div style={{ overflowY: "auto", maxHeight: "80vh", padding: "10px" }}>
             <Typography variant="h6" gutterBottom>
-                Tunnels found in pocket {pocketRank} ({tunnelsData.length} found)
+                Tunnels starting in pocket {pocketRank} ({tunnelsData.length} found)
             </Typography>
 
             <TableContainer component={Paper} sx={{ mb: 2 }}>
