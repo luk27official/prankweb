@@ -224,8 +224,7 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
                 visibleTunnels={visibleTunnels}
                 toggleTunnel={toggleTunnel}
                 tp={tp}
-                plugin={plugin!}
-                tunnelRepresentations={tunnelRepresentations}
+                pocketRank={pocketRank}
             />
         </div>
     </div>;

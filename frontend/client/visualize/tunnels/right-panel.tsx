@@ -162,13 +162,12 @@ function TunnelRow(props: {
     );
 }
 
-export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunnel, tp, plugin, tunnelRepresentations }: {
+export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunnel, tp, pocketRank }: {
     tunnelsData: TunnelData[];
     visibleTunnels: number[];
     toggleTunnel: (tunnelNumber: number) => void;
     tp: TunnelsTaskProps;
-    plugin: PluginUIContext;
-    tunnelRepresentations: StateObjectSelector[];
+    pocketRank: string;
 }) {
     if (tunnelsData.length === 0) {
         return (
@@ -203,7 +202,7 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
     return (
         <div style={{ overflowY: "auto", maxHeight: "80vh", padding: "10px" }}>
             <Typography variant="h6" gutterBottom>
-                Tunnels ({tunnelsData.length} found)
+                Tunnels found in pocket {pocketRank} ({tunnelsData.length} found)
             </Typography>
 
             <TableContainer component={Paper} sx={{ mb: 2 }}>
