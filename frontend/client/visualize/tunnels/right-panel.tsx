@@ -5,8 +5,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import "./right-panel.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
-import { StateObjectSelector } from "molstar/lib/mol-state";
+import { PredictionData } from "../../custom-types";
 
 function TunnelRow(props: {
     tunnel: TunnelData;
@@ -162,12 +161,13 @@ function TunnelRow(props: {
     );
 }
 
-export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunnel, tp, pocketRank }: {
+export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunnel, tp, pocketRank, prediction }: {
     tunnelsData: TunnelData[];
     visibleTunnels: number[];
     toggleTunnel: (tunnelNumber: number) => void;
     tp: TunnelsTaskProps;
     pocketRank: string;
+    prediction: PredictionData | undefined;
 }) {
     if (tunnelsData.length === 0) {
         return (
@@ -198,6 +198,28 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
         element.click();
         document.body.removeChild(element);
     };
+
+    const handleChannelsDBLink = () => {
+        if (!prediction) return;
+
+        const isUserProvided = tp.database.includes("user-upload");
+        const isPredicted = prediction.metadata.predictedStructure === true;
+        const structureCode = tp.id;
+
+        let url = "";
+        if (isPredicted) {
+            url = `https://channelsdb2.biodata.ceitec.cz/detail/alphafill/${structureCode}`;
+        } else if (!isUserProvided) {
+            url = `https://channelsdb2.biodata.ceitec.cz/detail/pdb/${structureCode}`;
+        }
+
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    const isUserProvided = tp.database.includes("user-upload");
+    const shouldShowChannelsDBButton = !isUserProvided && prediction;
 
     return (
         <div style={{ overflowY: "auto", maxHeight: "80vh", padding: "10px" }}>
@@ -253,6 +275,15 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
                 >
                     Download Data (JSON)
                 </Button>
+                {shouldShowChannelsDBButton && (
+                    <Button
+                        variant="outlined"
+                        onClick={handleChannelsDBLink}
+                        startIcon={<i className="bi bi-box-arrow-up-right"></i>}
+                    >
+                        View in ChannelsDB2
+                    </Button>
+                )}
             </Box>
         </div>
     );

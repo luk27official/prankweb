@@ -161,14 +161,21 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
 
     const getTunnelColor = (index: number): Color => {
         const colors = [
-            Color(0x00FF00), // green
-            Color(0x0000FF), // blue
-            Color(0xFFFF00), // yellow
-            Color(0xFF00FF), // magenta
-            Color(0x00FFFF), // cyan
-            Color(0xFFA500), // orange
-            Color(0xFF1493), // deep pink
-            Color(0x8A2BE2), // blue violet
+            Color(0x2E86AB), // Ocean blue - primary tunnel
+            Color(0xA23B72), // Rich magenta - secondary tunnel
+            Color(0xF18F01), // Vibrant orange
+            Color(0x06A77D), // Teal green
+            Color(0xD62246), // Cherry red
+            Color(0x8B4789), // Deep purple
+            Color(0xF6AE2D), // Golden yellow
+            Color(0x2A9D8F), // Turquoise
+            Color(0xE76F51), // Terracotta
+            Color(0x4A5899), // Royal blue
+            Color(0xBC4B51), // Brick red
+            Color(0x6A994E), // Forest green
+            Color(0xF77F00), // Burnt orange
+            Color(0x9B5DE5), // Lavender
+            Color(0x00BBF9), // Sky blue
         ];
         return colors[index % colors.length];
     };
@@ -225,6 +232,7 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
                 toggleTunnel={toggleTunnel}
                 tp={tp}
                 pocketRank={pocketRank}
+                prediction={prediction}
             />
         </div>
     </div>;
