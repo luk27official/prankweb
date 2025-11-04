@@ -2,7 +2,7 @@
 # executor-docking
 #
 
-FROM ubuntu:24.10
+FROM ubuntu:25.04
 
 ARG UID=5988
 ARG GID=5988
