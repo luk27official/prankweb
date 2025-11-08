@@ -211,7 +211,7 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
                 toggleTunnel={toggleTunnel}
                 tp={tp}
                 pocketRank={pocketRank}
-                prediction={prediction}
+                predictionInfo={tp.predictionInfo}
             />
         </div>
     </div>;
@@ -246,26 +246,36 @@ async function createMolstarViewer() {
 
 export async function getTunnelsTaskContent(id: string, database: string, hash: string, structureName: string): Promise<TunnelsTaskProps> {
     const apiEndpoint = getApiEndpoint(database, id, "tunnels");
+    const predictionApiEndpoint = getApiEndpoint(database, id, "prediction");
 
-    const createResponse = (dataJson: any): TunnelsTaskProps => ({
+    const createResponse = (dataJson: any, predictionInfo: any): TunnelsTaskProps => ({
         dataJson,
         hash,
         id,
         database,
-        structureName
+        structureName,
+        predictionInfo
     });
 
     try {
-        const dataJson = await fetch(`${apiEndpoint}/${hash}/public/data.json`)
-            .then(res => res.json())
-            .catch(err => {
-                console.error("Error fetching data.json:", err);
-                return null;
-            });
+        const [dataJson, predictionInfo] = await Promise.all([
+            fetch(`${apiEndpoint}/${hash}/public/data.json`)
+                .then(res => res.json())
+                .catch(err => {
+                    console.error("Error fetching data.json:", err);
+                    return null;
+                }),
+            fetch(predictionApiEndpoint)
+                .then(res => res.json())
+                .catch(err => {
+                    console.error("Error fetching prediction info:", err);
+                    return null;
+                })
+        ]);
 
-        return createResponse(dataJson || "Error");
+        return createResponse(dataJson || "Error", predictionInfo || {});
     } catch (error) {
         console.error("Error in getTunnelsTaskContent:", error);
-        return createResponse("Error");
+        return createResponse("Error", {});
     }
 }

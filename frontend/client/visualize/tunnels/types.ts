@@ -1,9 +1,12 @@
+import { PredictionInfo } from "../../prankweb-api";
+
 export interface TunnelsTaskProps {
     dataJson: any; // The complete data.json from MOLE
     database: string;
     id: string;
     hash: string;
     structureName: string;
+    predictionInfo: PredictionInfo;
 }
 
 export interface TunnelData {

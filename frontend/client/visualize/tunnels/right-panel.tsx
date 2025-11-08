@@ -5,7 +5,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import "./right-panel.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { PredictionData } from "../../custom-types";
+import { PredictionInfo } from "../../prankweb-api";
 import { getTunnelColorHex } from "./tunnel-colors";
 
 function TunnelRow(props: {
@@ -178,13 +178,13 @@ function TunnelRow(props: {
     );
 }
 
-export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunnel, tp, pocketRank, prediction }: {
+export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunnel, tp, pocketRank, predictionInfo }: {
     tunnelsData: TunnelData[];
     visibleTunnels: number[];
     toggleTunnel: (tunnelNumber: number) => void;
     tp: TunnelsTaskProps;
     pocketRank: string;
-    prediction: PredictionData | undefined;
+    predictionInfo: PredictionInfo;
 }) {
     if (tunnelsData.length === 0) {
         return (
@@ -217,10 +217,10 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
     };
 
     const handleChannelsDBLink = () => {
-        if (!prediction) return;
+        if (!predictionInfo) return;
 
         const isUserProvided = tp.database.includes("user-upload");
-        const isPredicted = prediction.metadata.predictedStructure === true;
+        const isPredicted = predictionInfo.metadata.predictedStructure === true;
         const structureCode = tp.id;
 
         let url = "";
@@ -236,7 +236,7 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
     };
 
     const isUserProvided = tp.database.includes("user-upload");
-    const shouldShowChannelsDBButton = !isUserProvided && prediction;
+    const shouldShowChannelsDBButton = !isUserProvided && predictionInfo;
 
     return (
         <div style={{ overflowY: "auto", maxHeight: "80vh", padding: "10px" }}>
