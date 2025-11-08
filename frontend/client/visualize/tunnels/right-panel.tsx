@@ -6,6 +6,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import "./right-panel.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { PredictionData } from "../../custom-types";
+import { getTunnelColorHex } from "./tunnel-colors";
 
 function TunnelRow(props: {
     tunnel: TunnelData;
@@ -21,6 +22,8 @@ function TunnelRow(props: {
     const maxRadius = Math.max(...tunnel.Profile.map(p => p.Radius));
     const avgRadius = tunnel.Profile.reduce((sum, p) => sum + p.Radius, 0) / tunnel.Profile.length;
     const length = tunnel.Profile[tunnel.Profile.length - 1].Distance;
+
+    const tunnelColor = getTunnelColorHex(tunnelNumber - 1);
 
     return (
         <React.Fragment>
@@ -46,7 +49,21 @@ function TunnelRow(props: {
                             : <i className="bi bi-x" style={{ "display": "block", "fontSize": "small" }}></i>}
                     </button>
                 </TableCell>
-                <TableCell align="center">{tunnelNumber}</TableCell>
+                <TableCell align="center">
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <Box
+                            sx={{
+                                width: 16,
+                                height: 16,
+                                backgroundColor: tunnelColor,
+                                border: '1px solid rgba(0, 0, 0, 0.2)',
+                                borderRadius: '2px',
+                                flexShrink: 0
+                            }}
+                        />
+                        {tunnelNumber}
+                    </Box>
+                </TableCell>
                 <TableCell align="right">{length.toFixed(2)}</TableCell>
                 <TableCell align="right">{minRadius.toFixed(2)}</TableCell>
                 <TableCell align="right">{avgRadius.toFixed(2)}</TableCell>

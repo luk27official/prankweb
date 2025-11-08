@@ -12,7 +12,7 @@ import { StateObjectSelector } from "molstar/lib/mol-state";
 import { PolymerRepresentation, PolymerViewType, PocketData, PredictionData, PocketRepresentation, PocketsViewType } from "../../custom-types";
 import { TunnelsTaskVisualizationBox } from "./visualization-box";
 import { TunnelsTaskRightPanel } from "./right-panel";
-import { Color } from "molstar/lib/mol-util/color";
+import { getTunnelColor } from "./tunnel-colors";
 
 export function TunnelsTask(tp: TunnelsTaskProps) {
     const [plugin, setPlugin] = React.useState<PluginUIContext | undefined>(undefined);
@@ -157,27 +157,6 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
         } catch (error) {
             console.error("Error loading tunnels data:", error);
         }
-    };
-
-    const getTunnelColor = (index: number): Color => {
-        const colors = [
-            Color(0x2E86AB), // Ocean blue - primary tunnel
-            Color(0xA23B72), // Rich magenta - secondary tunnel
-            Color(0xF18F01), // Vibrant orange
-            Color(0x06A77D), // Teal green
-            Color(0xD62246), // Cherry red
-            Color(0x8B4789), // Deep purple
-            Color(0xF6AE2D), // Golden yellow
-            Color(0x2A9D8F), // Turquoise
-            Color(0xE76F51), // Terracotta
-            Color(0x4A5899), // Royal blue
-            Color(0xBC4B51), // Brick red
-            Color(0x6A994E), // Forest green
-            Color(0xF77F00), // Burnt orange
-            Color(0x9B5DE5), // Lavender
-            Color(0x00BBF9), // Sky blue
-        ];
-        return colors[index % colors.length];
     };
 
     const toggleTunnel = (tunnelNumber: number) => {
