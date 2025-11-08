@@ -58,17 +58,20 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
         };
 
         loadPlugin();
-    }, []);
+    }, [tp]);
 
     const loadPocketData = async (plugin: PluginUIContext, structure: StateObjectSelector, tp: TunnelsTaskProps) => {
         try {
             const baseUrl: string = getApiEndpoint(tp.database, tp.id) + "/public";
             const prediction: PredictionData = await fetch(`${baseUrl}/prediction.json`).then(res => res.json()).catch(err => console.log(err));
+            if (!prediction) return;
+
             setPrediction(prediction);
 
             // Get pocket rank from task data
             const apiEndpoint: string = getApiEndpoint(tp.database, tp.id, "tunnels");
             const tunnelsTasks = await fetch(`${apiEndpoint}/tasks`).then(res => res.json()).catch(err => console.log(err));
+            if (!tunnelsTasks) return;
 
             let pocketRank: string | undefined = undefined;
             tunnelsTasks["tasks"].forEach((task: any) => {
@@ -79,7 +82,6 @@ export function TunnelsTask(tp: TunnelsTaskProps) {
             });
 
             if (!pocketRank) return;
-
             setPocketRank(pocketRank);
 
             const pocket = prediction.pockets.find((pocket: PocketData) => pocket.rank === pocketRank);

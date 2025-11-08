@@ -75,7 +75,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             specificType: ServerTaskType.Docking,
             type: TaskType.Server,
             name: "Docking",
-            compute: (params, customName, pocketIndex) => {
+            compute: async (params, customName, pocketIndex) => {
                 const smiles = params[0].replaceAll(" ", "");
 
                 const handleInvalidDockingInput = (baseMessage: string) => {
@@ -125,7 +125,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                     "discriminator": "server",
                 });
                 localStorage.setItem(localStorageKey, JSON.stringify(tasks));
-                const taskPostRequest = computeDockingTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex], smiles, props.plugin, exhaustiveness);
+                const taskPostRequest = await computeDockingTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex], smiles, props.plugin, exhaustiveness);
                 if (taskPostRequest === null) {
                     tasks[tasks.length - 1].status = "failed";
                 }
@@ -141,7 +141,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
             specificType: ServerTaskType.Tunnels,
             type: TaskType.Server,
             name: "MOLE 2.5 tunnels",
-            compute: (params, customName, pocketIndex) => {
+            compute: async (params, customName, pocketIndex) => {
                 const localStorageKey = getLocalStorageKey(props.predictionInfo, "serverTasks");
                 let savedTasks = localStorage.getItem(localStorageKey);
                 if (!savedTasks) savedTasks = "[]";
@@ -157,7 +157,7 @@ export default function TasksTab(props: { pockets: PocketData[], predictionInfo:
                     "discriminator": "server",
                 });
                 localStorage.setItem(localStorageKey, JSON.stringify(tasks));
-                const taskPostRequest = computeTunnelsTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex]);
+                const taskPostRequest = await computeTunnelsTaskOnBackend(props.predictionInfo, props.pockets[pocketIndex]);
                 if (taskPostRequest === null) {
                     tasks[tasks.length - 1].status = "failed";
                 }

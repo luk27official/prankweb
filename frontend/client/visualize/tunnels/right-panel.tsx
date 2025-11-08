@@ -17,7 +17,10 @@ function TunnelRow(props: {
     const { tunnel, tunnelNumber, isVisible, handleToggle } = props;
     const [open, setOpen] = React.useState(false);
 
-    // Calculate statistics
+    if (!tunnel.Profile || tunnel.Profile.length === 0) {
+        return null;
+    }
+
     const minRadius = Math.min(...tunnel.Profile.map(p => p.Radius));
     const maxRadius = Math.max(...tunnel.Profile.map(p => p.Radius));
     const avgRadius = tunnel.Profile.reduce((sum, p) => sum + p.Radius, 0) / tunnel.Profile.length;
@@ -36,17 +39,17 @@ function TunnelRow(props: {
                     <button
                         type="button"
                         style={{
-                            "display": "inline",
-                            "padding": "0.25rem",
-                            "backgroundColor": isVisible ? "#007bff" : "transparent",
-                            "color": isVisible ? "#ffffff" : "#000000"
+                            display: "inline",
+                            padding: "0.25rem",
+                            backgroundColor: isVisible ? "#007bff" : "transparent",
+                            color: isVisible ? "#ffffff" : "#000000"
                         }}
                         title="Toggle tunnel visibility"
                         className="btn btn-outline-secondary btnIcon"
                         onClick={() => handleToggle(tunnelNumber)}
                     >
-                        {isVisible ? <i className="bi bi-check" style={{ "display": "block", "fontSize": "small" }}></i>
-                            : <i className="bi bi-x" style={{ "display": "block", "fontSize": "small" }}></i>}
+                        {isVisible ? <i className="bi bi-check" style={{ display: "block", fontSize: "small" }}></i>
+                            : <i className="bi bi-x" style={{ display: "block", fontSize: "small" }}></i>}
                     </button>
                 </TableCell>
                 <TableCell align="center">
@@ -214,6 +217,7 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+        URL.revokeObjectURL(element.href);
     };
 
     const handleChannelsDBLink = () => {
