@@ -210,7 +210,7 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
         if (isPredicted) {
             url = `https://channelsdb2.biodata.ceitec.cz/detail/alphafill/${structureCode}`;
         } else if (!isUserProvided) {
-            url = `https://channelsdb2.biodata.ceitec.cz/detail/pdb/${structureCode}`;
+            url = `https://channelsdb2.biodata.ceitec.cz/detail/pdb/${structureCode.toLowerCase()}`;
         }
 
         if (url) {
