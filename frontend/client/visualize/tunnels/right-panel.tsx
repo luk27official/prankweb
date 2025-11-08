@@ -243,7 +243,7 @@ export function TunnelsTaskRightPanel({ tunnelsData, visibleTunnels, toggleTunne
     const shouldShowChannelsDBButton = !isUserProvided && predictionInfo;
 
     return (
-        <div style={{ overflowY: "auto", maxHeight: "80vh", padding: "10px" }}>
+        <div style={{ overflowY: "auto", maxHeight: "92vh", padding: "10px" }}>
             <Typography variant="h6" gutterBottom>
                 Tunnels starting in pocket {pocketRank} ({tunnelsData.length} found)
             </Typography>
