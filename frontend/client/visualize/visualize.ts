@@ -2,6 +2,7 @@ import "../bootstrap.scss";
 import "bootstrap";
 import { render } from "./app";
 import { getDockingTaskContent } from "./docking/main";
+import { getTunnelsTaskContent } from "./tunnels/main";
 
 async function main() {
     const queryParameters = new URLSearchParams(window.location.search);
@@ -24,6 +25,8 @@ async function getData(type: string, id: string, database: string, hash: string,
     switch (type) {
         case "docking":
             return await getDockingTaskContent(id, database, hash, structureName);
+        case "tunnels":
+            return await getTunnelsTaskContent(id, database, hash, structureName);
         default:
             return "Unknown type";
     }

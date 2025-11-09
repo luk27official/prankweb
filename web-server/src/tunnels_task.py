@@ -66,10 +66,31 @@ class TunnelsTask:
         #if we successfully found the task directory, we can return the file, if it exists
 
         public_directory = os.path.join(directory, "public")
-        file_name = self._secure_filename(file_name)
-        file_path = os.path.join(public_directory, file_name)
+        # security check
+        if "\\" in file_name:
+            return "", 403
+
+        # Handle nested paths (e.g., pdb/profile/tunnel_1.pdb)
+        file_parts = file_name.split('/')
+        secure_parts = [self._secure_filename(part) for part in file_parts]
+
+        # Validate that none of the secure parts are empty
+        if any(part == "" for part in secure_parts):
+            return "", 404
+        secure_file_name = os.path.join(*secure_parts) if len(secure_parts) > 1 else secure_parts[0]
+        file_path = os.path.normpath(os.path.join(public_directory, secure_file_name))
+
+        # Ensure the file is within the public directory (prevent directory traversal)
+        real_public = os.path.realpath(public_directory)
+        real_file = os.path.realpath(file_path)
+        if os.path.commonpath([real_public, real_file]) != real_public:
+            return "", 403
+
         if os.path.isfile(file_path):
-            return self._response_file(public_directory, file_name)
+            # For nested paths, we need to serve from the correct subdirectory
+            file_dir = os.path.dirname(file_path)
+            file_basename = os.path.basename(file_path)
+            return self._response_file(file_dir, file_basename)
         return "", 404
     
     @staticmethod
@@ -142,7 +163,7 @@ class TunnelsTask:
         """
         Returns a directory for a task with given prediction ID.
         """
-        if not re.match("[_,\w]+", prediction_id):
+        if not re.match(r"[_,\w]+", prediction_id):
             return None
         if "user-upload" in self.database_name:
             return os.path.join(self.root_path, prediction_id)

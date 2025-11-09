@@ -1,0 +1,26 @@
+.tunnels-right-panel {
+    padding: 10px;
+}
+
+.tunnel-info-card {
+    margin-bottom: 15px;
+}
+
+.layer-property {
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+.download-link {
+    text-decoration: none;
+    color: #1976d2;
+    font-weight: bold;
+}
+
+.download-link:hover {
+    text-decoration: underline;
+}
+
+.tunnels-visualization-toolbox .visualization-toolbox-option {
+    width: 50%;
+}

@@ -104,11 +104,11 @@ def route_get_all_docking_tasks(database_name: str, prediction_name: str):
 # tunnels routes
 
 @api_v2.route(
-    "/tunnels/<database_name>/<prediction_name>/<task_hash>/public/<file_name>",
+    "/tunnels/<database_name>/<prediction_name>/<task_hash>/public/<path:file_name>",
     methods=["GET"]
 )
 def route_get_tunnels_file_with_param(database_name: str, prediction_name: str, task_hash: str, file_name: str):
-    """Get a tunnels file from the server."""
+    """Get a tunnels file from the server. Supports nested paths like pdb/profile/tunnel_1.pdb"""
     tt = TunnelsTask(database_name=database_name)
     return tt.get_file_with_post_param(prediction_name.upper(), file_name, task_hash)
 

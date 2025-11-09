@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 
 import { DockingTask } from "./docking/main";
 import { DockingTaskProps } from "./docking/types";
+import { TunnelsTask } from "./tunnels/main";
+import { TunnelsTaskProps } from "./tunnels/types";
 
 type Visualization<T> = {
     type: string;
@@ -19,6 +21,8 @@ function MainVis<T>({ type, data }: Visualization<T>) {
     switch (type) {
         case "docking":
             return <DockingTask {...(data as DockingTaskProps)} />;
+        case "tunnels":
+            return <TunnelsTask {...(data as TunnelsTaskProps)} />;
         default:
             return (
                 <div>

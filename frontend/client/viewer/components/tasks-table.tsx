@@ -14,6 +14,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { PocketData, ServerTaskTypeVisualizationDescriptors } from "../../custom-types";
 import { ClientTaskLocalStorageData, ServerTaskLocalStorageData, ServerTaskTypeDescriptors, ClientTaskTypeDescriptors, ClientTaskType, ServerTaskType, getLocalStorageKey } from "../../custom-types";
 import { dockingHash, downloadDockingResult, pollForDockingTask } from "../../tasks/server-docking-task";
+import { tunnelsHash } from "../../tasks/server-mole-tunnels";
 import { downloadTunnelsResult, pollForTunnelsTask } from "../../tasks/server-mole-tunnels";
 import { Order, getComparator, isInstanceOfClientTaskLocalStorageData, isInstanceOfServerTaskLocalStorageData } from "./tools";
 import { PredictionInfo } from "../../prankweb-api";
@@ -208,6 +209,11 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
         window.open(`./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}&structureName=${props.predictionInfo.metadata.structureName}`, "_blank")?.focus();
     };
 
+    const redirectToTunnelsVisualization = async (task: ServerTaskLocalStorageData) => {
+        const hash = await tunnelsHash(task.pocket.toString());
+        window.open(`./visualize?type=${ServerTaskTypeVisualizationDescriptors[task.type]}&id=${props.predictionInfo.id}&database=${props.predictionInfo.database}&hash=${hash}&structureName=${props.predictionInfo.metadata.structureName}`, "_blank")?.focus();
+    };
+
     const handleServerTaskDeleteRequest = (task: ServerTaskLocalStorageData) => {
         if (task === null) return;
         setServerTaskToDelete(task);
@@ -263,6 +269,11 @@ export function TasksTable(props: { pocket: PocketData | null, predictionInfo: P
                                         &nbsp;
                                         {task.status === "successful" && task.type === ServerTaskType.Docking &&
                                             <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToDockingVisualization(task)}>
+                                                <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
+                                            </button>
+                                        }
+                                        {task.status === "successful" && task.type === ServerTaskType.Tunnels &&
+                                            <button type="button" className="btn btn-outline-secondary btnIcon" title="Visualize task result" style={{ "padding": "0.25rem" }} onClick={() => redirectToTunnelsVisualization(task)}>
                                                 <i className="bi bi-eye" style={{ "display": "block", "fontSize": "small" }}></i>
                                             </button>
                                         }
